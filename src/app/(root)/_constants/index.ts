@@ -7,7 +7,7 @@ type LanguageConfig = Record<
     id: string;
     label: string;
     logoPath: string;
-    pistonRuntime: { language: string; version: string };
+    ocLanguage: string; // OneCompiler language ID
     monacoLanguage: string;
     defaultCode: string;
   }
@@ -18,7 +18,7 @@ export const LANGUAGE_CONFIG: LanguageConfig = {
     id: "javascript",
     label: "JavaScript",
     logoPath: "/javascript.png",
-    pistonRuntime: { language: "javascript", version: "18.15.0" },
+    ocLanguage: "javascript",
     monacoLanguage: "javascript",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // JavaScript playground for learning and testing algorithms.
@@ -37,7 +37,7 @@ for (let i = 0; i < 10; i++) {
     id: "typescript",
     label: "TypeScript",
     logoPath: "/typescript.png",
-    pistonRuntime: { language: "typescript", version: "5.0.3" },
+    ocLanguage: "typescript",
     monacoLanguage: "typescript",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // TypeScript playground for structured, typed logic.
@@ -56,7 +56,7 @@ for (let i = 0; i < 10; i++) {
     id: "python",
     label: "Python",
     logoPath: "/python.png",
-    pistonRuntime: { language: "python", version: "3.10.0" },
+    ocLanguage: "python",
     monacoLanguage: "python",
     defaultCode: `# 🔥 Welcome to Codefyre!
 # Python playground to build logic and learn algorithms.
@@ -74,7 +74,7 @@ for i in range(10):
     id: "java",
     label: "Java",
     logoPath: "/java.png",
-    pistonRuntime: { language: "java", version: "15.0.2" },
+    ocLanguage: "java",
     monacoLanguage: "java",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // Java playground for OOP and algorithmic mastery.
@@ -97,7 +97,7 @@ public class Main {
     id: "go",
     label: "Go",
     logoPath: "/go.png",
-    pistonRuntime: { language: "go", version: "1.16.2" },
+    ocLanguage: "go",
     monacoLanguage: "go",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // Go playground for building fast and concurrent programs.
@@ -124,7 +124,7 @@ func main() {
     id: "rust",
     label: "Rust",
     logoPath: "/rust.png",
-    pistonRuntime: { language: "rust", version: "1.68.2" },
+    ocLanguage: "rust",
     monacoLanguage: "rust",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // Rust playground — memory-safe and powerful.
@@ -148,7 +148,7 @@ fn main() {
     id: "cpp",
     label: "C++",
     logoPath: "/cpp.png",
-    pistonRuntime: { language: "cpp", version: "10.2.0" },
+    ocLanguage: "cpp",
     monacoLanguage: "cpp",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // C++ playground for mastering performance and logic.
@@ -173,7 +173,7 @@ int main() {
     id: "csharp",
     label: "C#",
     logoPath: "/csharp.png",
-    pistonRuntime: { language: "csharp", version: "6.12.0" },
+    ocLanguage: "csharp",
     monacoLanguage: "csharp",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // C# playground to explore logic with clarity.
@@ -198,7 +198,7 @@ class Program {
     id: "ruby",
     label: "Ruby",
     logoPath: "/ruby.png",
-    pistonRuntime: { language: "ruby", version: "3.0.1" },
+    ocLanguage: "ruby",
     monacoLanguage: "ruby",
     defaultCode: `# 🔥 Welcome to Codefyre!
 # Ruby playground — elegant and expressive coding.
@@ -217,7 +217,7 @@ end`,
     id: "swift",
     label: "Swift",
     logoPath: "/swift.png",
-    pistonRuntime: { language: "swift", version: "5.3.3" },
+    ocLanguage: "swift",
     monacoLanguage: "swift",
     defaultCode: `// 🔥 Welcome to Codefyre!
 // Swift playground for modern and safe programming.
