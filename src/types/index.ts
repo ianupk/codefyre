@@ -1,5 +1,5 @@
-import { Id } from "../../convex/_generated/dataModel";
 import type { editor as MonacoEditor } from "monaco-editor";
+import { Id } from "../../convex/_generated/dataModel";
 
 export interface Theme {
   id: string;
@@ -13,22 +13,14 @@ export interface Language {
   logoPath: string;
   monacoLanguage: string;
   defaultCode: string;
-  pistonRuntime: LanguageRuntime;
-}
-
-export interface LanguageRuntime {
-  language: string;
-  version: string;
+  ocLanguage: string; // OneCompiler language ID
 }
 
 export interface ExecuteCodeResponse {
-  compile?: {
-    output: string;
-  };
-  run?: {
-    output: string;
-    stderr: string;
-  };
+  stdout:        string;
+  stderr:        string;
+  exception:     string | null;
+  executionTime: number | null;
 }
 
 export interface ExecutionResult {
@@ -44,11 +36,9 @@ export interface CodeEditorState {
   error: string | null;
   theme: string;
   fontSize: number;
-
   editor: MonacoEditor.IStandaloneCodeEditor | null;
   executionResult: ExecutionResult | null;
   setEditor: (editor: MonacoEditor.IStandaloneCodeEditor) => void;
-
   getCode: () => string;
   setLanguage: (language: string) => void;
   setTheme: (theme: string) => void;

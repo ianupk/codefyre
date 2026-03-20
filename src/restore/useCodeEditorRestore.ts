@@ -1,42 +1,25 @@
 import { CodeEditorState } from "./../types/index";
 import { LANGUAGE_CONFIG } from "@/app/(root)/_constants";
 import { create } from "zustand";
-import type { editor as MonacoEditor } from "monaco-editor"; // Correct type import
+import type { editor as MonacoEditor } from "monaco-editor";
 
-const DEFAULT_LANGUAGE = "javascript";
-const DEFAULT_THEME = "vs-dark";
+const DEFAULT_LANGUAGE  = "javascript";
+const DEFAULT_THEME     = "vs-dark";
 const DEFAULT_FONT_SIZE = 16;
 
-const isValidLanguage = (
-  lang: string
-): lang is keyof typeof LANGUAGE_CONFIG => {
-  return lang in LANGUAGE_CONFIG;
-};
+const isValidLanguage = (lang: string): lang is keyof typeof LANGUAGE_CONFIG =>
+  lang in LANGUAGE_CONFIG;
 
 const getInitialState = () => {
   if (typeof window === "undefined") {
-    return {
-      language: DEFAULT_LANGUAGE,
-      fontSize: DEFAULT_FONT_SIZE,
-      theme: DEFAULT_THEME,
-    };
+    return { language: DEFAULT_LANGUAGE, fontSize: DEFAULT_FONT_SIZE, theme: DEFAULT_THEME };
   }
-
-  const storedLanguage =
-    localStorage.getItem("editor-language") || DEFAULT_LANGUAGE;
-  const language = isValidLanguage(storedLanguage)
-    ? storedLanguage
-    : DEFAULT_LANGUAGE;
-
-  const savedTheme = localStorage.getItem("editor-theme") || DEFAULT_THEME;
-  const savedFontSize = parseInt(
-    localStorage.getItem("editor-font-size") || `${DEFAULT_FONT_SIZE}`
-  );
-
+  const storedLanguage = localStorage.getItem("editor-language") || DEFAULT_LANGUAGE;
+  const language = isValidLanguage(storedLanguage) ? storedLanguage : DEFAULT_LANGUAGE;
   return {
     language,
-    theme: savedTheme,
-    fontSize: savedFontSize,
+    theme:    localStorage.getItem("editor-theme")     || DEFAULT_THEME,
+    fontSize: parseInt(localStorage.getItem("editor-font-size") || `${DEFAULT_FONT_SIZE}`),
   };
 };
 
@@ -47,13 +30,12 @@ export const useCodeEditorRestore = create<
   }
 >((set, get) => {
   const initialState = getInitialState();
-
   return {
     ...initialState,
-    output: "",
-    isRunning: false,
-    error: null,
-    editor: null,
+    output:          "",
+    isRunning:       false,
+    error:           null,
+    editor:          null,
     executionResult: null,
 
     getCode: () => get().editor?.getValue() || "",
@@ -76,103 +58,72 @@ export const useCodeEditorRestore = create<
 
     setLanguage: (language: string) => {
       if (!isValidLanguage(language)) {
-        console.warn(
-          `Invalid language selected: ${language}. Falling back to default.`
-        );
+        console.warn(`Invalid language: ${language}. Using default.`);
         language = DEFAULT_LANGUAGE;
       }
-
       const currentCode = get().editor?.getValue();
-      if (currentCode) {
-        localStorage.setItem(`editor-code-${get().language}`, currentCode);
-      }
-
+      if (currentCode) localStorage.setItem(`editor-code-${get().language}`, currentCode);
       localStorage.setItem("editor-language", language);
-
-      set({
-        language,
-        output: "",
-        error: null,
-      });
+      set({ language, output: "", error: null });
     },
 
     runCode: async () => {
       const { language, getCode } = get();
       const code = getCode();
-
-      if (!code) {
-        set({ error: "Please enter some code" });
-        return;
-      }
+      if (!code) { set({ error: "Please enter some code" }); return; }
 
       set({ isRunning: true, error: null, output: "" });
 
       try {
-        const runtime = LANGUAGE_CONFIG[language].pistonRuntime;
-        const response = await fetch("https://emkc.org/api/v2/piston/execute", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            language: runtime.language,
-            version: runtime.version,
-            files: [{ content: code }],
+        const ocLanguage = LANGUAGE_CONFIG[language].ocLanguage;
+
+        const res = await fetch("/api/execute", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({
+            source_code: code,
+            language:    ocLanguage,
+            stdin:       "",
           }),
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (data.message) {
+        // Handle error response from our proxy
+        if (!res.ok) {
+          const msg = data.error || `Execution failed (${res.status})`;
+          set({ error: msg, executionResult: { code, output: "", error: msg } });
+          return;
+        }
+
+        // Handle runtime errors / exceptions from OneCompiler
+        if (data.exception) {
           set({
-            error: data.message,
-            executionResult: { code, output: "", error: data.message },
+            error:           data.exception,
+            executionResult: { code, output: "", error: data.exception },
           });
           return;
         }
 
-        if (data.compile && data.compile.code !== 0) {
-          const error = data.compile.stderr || data.compile.output;
+        if (data.stderr) {
           set({
-            error,
-            executionResult: {
-              code,
-              output: "",
-              error,
-            },
+            error:           data.stderr,
+            executionResult: { code, output: "", error: data.stderr },
           });
           return;
         }
 
-        if (data.run && data.run.code !== 0) {
-          const error = data.run.stderr || data.run.output;
-          set({
-            error,
-            executionResult: {
-              code,
-              output: "",
-              error,
-            },
-          });
-          return;
-        }
-
-        // Successful execution
-        const output = data.run.output;
-
+        // Success
+        const output = data.stdout || "";
         set({
-          output: output.trim(),
-          error: null,
-          executionResult: {
-            code,
-            output: output.trim(),
-            error: null,
-          },
+          output:          output.trim(),
+          error:           null,
+          executionResult: { code, output: output.trim(), error: null },
         });
-      } catch (error) {
-        console.error("Error running code:", error);
+      } catch (err) {
+        console.error("Error running code:", err);
         set({
-          error: "Error running code",
+          error:           "Error running code",
           executionResult: { code, output: "", error: "Error running code" },
         });
       } finally {
@@ -182,5 +133,4 @@ export const useCodeEditorRestore = create<
   };
 });
 
-export const getExecutionResult = () =>
-  useCodeEditorRestore.getState().executionResult;
+export const getExecutionResult = () => useCodeEditorRestore.getState().executionResult;
