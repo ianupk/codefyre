@@ -1,28 +1,30 @@
 "use client";
 
 import { getExecutionResult, useCodeEditorRestore } from "@/restore/useCodeEditorRestore";
-import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
+import { useSession } from "@/lib/auth-client";
 import { motion } from "framer-motion";
 import { Loader2, Play } from "lucide-react";
-import { api } from "../../../../convex/_generated/api";
 
 function RunButton() {
-    const { user } = useUser();
+    const { data: session } = useSession();
     const { runCode, language, isRunning } = useCodeEditorRestore();
-    const saveExecution = useMutation(api.codeExecutions.saveExecution);
 
     const handleRun = async () => {
         await runCode();
         const result = getExecutionResult();
 
-        if (user && result) {
-            await saveExecution({
-                language,
-                code: result.code,
-                output: result.output || undefined,
-                error: result.error || undefined,
-            });
+        // Save execution to DB if user is logged in
+        if (session?.user && result) {
+            await fetch("/api/executions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    language,
+                    code: result.code,
+                    output: result.output || null,
+                    error: result.error || null,
+                }),
+            }).catch(console.error);
         }
     };
 
@@ -32,15 +34,9 @@ function RunButton() {
             disabled={isRunning}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className={`
-        group relative inline-flex items-center gap-2.5 px-5 py-2.5
-        disabled:cursor-not-allowed
-        focus:outline-none
-      `}
+            className="group relative inline-flex items-center gap-2.5 px-5 py-2.5 disabled:cursor-not-allowed focus:outline-none"
         >
-            {/* bg wit gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl opacity-100 transition-opacity group-hover:opacity-90" />
-
             <div className="relative flex items-center gap-2.5">
                 {isRunning ? (
                     <>

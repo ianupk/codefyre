@@ -1,80 +1,120 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+    provider = "prisma-client-js"
+    output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model user {
+    id            String    @id
+    name          String
+    email         String    @unique
+    emailVerified Boolean   @default(false)
+    image         String?
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
 
-  codeExecutions  CodeExecution[]
-  snippets        Snippet[]
-  snippetComments SnippetComment[]
-  stars           Star[]
+    sessions        session[]
+    accounts        account[]
+    codeExecutions  CodeExecution[]
+    snippets        Snippet[]
+    snippetComments SnippetComment[]
+    stars           Star[]
+}
 
-  @@map("users")
+model session {
+    id        String   @id
+    expiresAt DateTime
+    token     String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    ipAddress String?
+    userAgent String?
+    userId    String
+    user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model account {
+    id                    String    @id
+    accountId             String
+    providerId            String
+    userId                String
+    user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+}
+
+model verification {
+    id         String   @id
+    identifier String
+    value      String
+    expiresAt  DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
 }
 
 model CodeExecution {
-  id        String   @id @default(cuid())
-  userId    String
-  language  String
-  code      String
-  output    String?
-  error     String?
-  createdAt DateTime @default(now())
+    id        String   @id @default(cuid())
+    userId    String
+    language  String
+    code      String
+    output    String?
+    error     String?
+    createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user user @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("code_executions")
+    @@map("code_executions")
 }
 
 model Snippet {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  language  String
-  code      String
-  userName  String
-  createdAt DateTime @default(now())
+    id        String   @id @default(cuid())
+    userId    String
+    title     String
+    language  String
+    code      String
+    userName  String
+    createdAt DateTime @default(now())
 
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments SnippetComment[]
-  stars    Star[]
+    user     user             @relation(fields: [userId], references: [id], onDelete: Cascade)
+    comments SnippetComment[]
+    stars    Star[]
 
-  @@map("snippets")
+    @@map("snippets")
 }
 
 model SnippetComment {
-  id        String   @id @default(cuid())
-  snippetId String
-  userId    String
-  userName  String
-  content   String
-  createdAt DateTime @default(now())
+    id        String   @id @default(cuid())
+    snippetId String
+    userId    String
+    userName  String
+    content   String
+    createdAt DateTime @default(now())
 
-  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+    user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("snippet_comments")
+    @@map("snippet_comments")
 }
 
 model Star {
-  id        String   @id @default(cuid())
-  userId    String
-  snippetId String
-  createdAt DateTime @default(now())
+    id        String   @id @default(cuid())
+    userId    String
+    snippetId String
+    createdAt DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+    user    user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, snippetId])
-  @@map("stars")
+    @@unique([userId, snippetId])
+    @@map("stars")
 }
