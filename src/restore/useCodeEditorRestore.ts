@@ -37,6 +37,7 @@ export const useCodeEditorRestore = create<
         error: null,
         editor: null,
         executionResult: null,
+        stdin: "",
 
         getCode: () => get().editor?.getValue() || "",
 
@@ -56,6 +57,8 @@ export const useCodeEditorRestore = create<
             set({ fontSize });
         },
 
+        setStdin: (stdin: string) => set({ stdin }),
+
         setLanguage: (language: string) => {
             if (!isValidLanguage(language)) {
                 console.warn(`Invalid language: ${language}. Using default.`);
@@ -68,7 +71,7 @@ export const useCodeEditorRestore = create<
         },
 
         runCode: async () => {
-            const { language, getCode } = get();
+            const { language, getCode, stdin } = get();
             const code = getCode();
             if (!code) {
                 set({ error: "Please enter some code" });
@@ -86,20 +89,18 @@ export const useCodeEditorRestore = create<
                     body: JSON.stringify({
                         source_code: code,
                         language: ocLanguage,
-                        stdin: "",
+                        stdin: stdin, // ← uses the stdin from state
                     }),
                 });
 
                 const data = await res.json();
 
-                // Handle error response from our proxy
                 if (!res.ok) {
                     const msg = data.error || `Execution failed (${res.status})`;
                     set({ error: msg, executionResult: { code, output: "", error: msg } });
                     return;
                 }
 
-                // Handle runtime errors / exceptions from OneCompiler
                 if (data.exception) {
                     set({
                         error: data.exception,
@@ -116,7 +117,6 @@ export const useCodeEditorRestore = create<
                     return;
                 }
 
-                // Success
                 const output = data.stdout || "";
                 set({
                     output: output.trim(),

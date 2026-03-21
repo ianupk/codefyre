@@ -6,7 +6,7 @@ import { useState } from "react";
 import RunningCodeSkeleton from "./RunningCodeSkeleton";
 
 function OutputPanel() {
-    const { output, error, isRunning } = useCodeEditorRestore();
+    const { output, error, isRunning, stdin, setStdin } = useCodeEditorRestore();
     const [isCopied, setIsCopied] = useState(false);
 
     const hasContent = error || output;
@@ -15,13 +15,33 @@ function OutputPanel() {
         if (!hasContent) return;
         await navigator.clipboard.writeText(error || output);
         setIsCopied(true);
-
         setTimeout(() => setIsCopied(false), 2000);
     };
 
     return (
         <div className="relative bg-[#181825] rounded-xl p-4 ring-1 ring-gray-800/50">
-            {/* Header */}
+            {/* Stdin */}
+            <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#1e1e2e] ring-1 ring-gray-800/50">
+                        <Terminal className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-300">stdin</span>
+                    <span className="text-xs text-gray-600 ml-1">— program input (optional)</span>
+                </div>
+                <textarea
+                    value={stdin}
+                    onChange={(e) => setStdin(e.target.value)}
+                    placeholder="Enter input for your program here..."
+                    rows={3}
+                    className="w-full bg-[#1e1e2e]/50 border border-[#313244] rounded-xl px-4 py-3
+                    text-sm text-gray-300 font-mono placeholder-gray-600
+                    focus:outline-none focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/50
+                    resize-none transition-all"
+                />
+            </div>
+
+            {/* Output header */}
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#1e1e2e] ring-1 ring-gray-800/50">
@@ -33,8 +53,8 @@ function OutputPanel() {
                 {hasContent && (
                     <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-gray-300 bg-[#1e1e2e] 
-            rounded-lg ring-1 ring-gray-800/50 hover:ring-gray-700/50 transition-all"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-gray-300 bg-[#1e1e2e]
+                        rounded-lg ring-1 ring-gray-800/50 hover:ring-gray-700/50 transition-all"
                     >
                         {isCopied ? (
                             <>
@@ -51,12 +71,9 @@ function OutputPanel() {
                 )}
             </div>
 
-            {/* Output Area */}
+            {/* Output area */}
             <div className="relative">
-                <div
-                    className="relative bg-[#1e1e2e]/50 backdrop-blur-sm border border-[#313244] 
-        rounded-xl p-4 h-[600px] overflow-auto font-mono text-sm"
-                >
+                <div className="relative bg-[#1e1e2e]/50 backdrop-blur-sm border border-[#313244] rounded-xl p-4 h-[500px] overflow-auto font-mono text-sm">
                     {isRunning ? (
                         <RunningCodeSkeleton />
                     ) : error ? (
