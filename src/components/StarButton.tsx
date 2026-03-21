@@ -1,25 +1,34 @@
 "use client";
-
 import { useSession } from "@/lib/auth-client";
-import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 
-interface StarButtonProps {
-    snippetId: string;
-}
+const StarIcon = ({ filled }: { filled: boolean }) => (
+    <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill={filled ? "#ffa116" : "none"}
+        stroke={filled ? "#ffa116" : "currentColor"}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+);
 
-function StarButton({ snippetId }: StarButtonProps) {
+export default function StarButton({ snippetId }: { snippetId: string }) {
     const { data: session } = useSession();
     const [isStarred, setIsStarred] = useState(false);
-    const [starCount, setStarCount] = useState(0);
+    const [count, setCount] = useState(0);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetch(`/api/snippets/${snippetId}/star`)
             .then((r) => r.json())
-            .then((data) => {
-                setIsStarred(data.isStarred);
-                setStarCount(data.starCount);
+            .then((d) => {
+                setIsStarred(d.isStarred);
+                setCount(d.starCount);
             })
             .catch(console.error);
     }, [snippetId]);
@@ -27,21 +36,17 @@ function StarButton({ snippetId }: StarButtonProps) {
     const handleStar = async () => {
         if (!session || loading) return;
         setLoading(true);
-
-        // Optimistic update
-        setIsStarred((prev) => !prev);
-        setStarCount((prev) => (isStarred ? prev - 1 : prev + 1));
-
+        setIsStarred((p) => !p);
+        setCount((p) => (isStarred ? p - 1 : p + 1));
         try {
-            const res = await fetch(`/api/snippets/${snippetId}/star`, { method: "POST" });
-            const data = await res.json();
-            setIsStarred(data.isStarred);
-            setStarCount(data.starCount);
-        } catch (error) {
-            // Revert on error
-            setIsStarred((prev) => !prev);
-            setStarCount((prev) => (isStarred ? prev + 1 : prev - 1));
-            console.error(error);
+            const d = await fetch(`/api/snippets/${snippetId}/star`, { method: "POST" }).then((r) =>
+                r.json()
+            );
+            setIsStarred(d.isStarred);
+            setCount(d.starCount);
+        } catch {
+            setIsStarred((p) => !p);
+            setCount((p) => (isStarred ? p + 1 : p - 1));
         } finally {
             setLoading(false);
         }
@@ -49,24 +54,25 @@ function StarButton({ snippetId }: StarButtonProps) {
 
     return (
         <button
-            className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${
-                isStarred
-                    ? "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
-                    : "bg-gray-500/10 text-gray-400 hover:bg-gray-500/20"
-            }`}
             onClick={handleStar}
             disabled={!session || loading}
+            style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "4px 9px",
+                borderRadius: "var(--r)",
+                background: isStarred ? "rgba(255,161,22,0.1)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${isStarred ? "rgba(255,161,22,0.3)" : "var(--border-default)"}`,
+                color: isStarred ? "var(--accent)" : "var(--text-muted)",
+                cursor: session ? "pointer" : "default",
+                transition: "all 0.15s",
+                fontFamily: "Inter, sans-serif",
+            }}
+            className="hover:bg-[rgba(255,161,22,0.12)]"
         >
-            <Star
-                className={`w-4 h-4 ${isStarred ? "fill-yellow-500" : "fill-none group-hover:fill-gray-400"}`}
-            />
-            <span
-                className={`text-xs font-medium ${isStarred ? "text-yellow-500" : "text-gray-400"}`}
-            >
-                {starCount}
-            </span>
+            <StarIcon filled={isStarred} />
+            <span style={{ fontSize: 12, fontWeight: 600 }}>{count}</span>
         </button>
     );
 }
-
-export default StarButton;

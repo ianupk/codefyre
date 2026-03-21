@@ -128,11 +128,17 @@ function ProfilePage() {
                                         <motion.div
                                             layoutId="activeTab"
                                             className="absolute inset-0 bg-blue-500/10 rounded-lg"
-                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                            transition={{
+                                                type: "spring",
+                                                bounce: 0.2,
+                                                duration: 0.6,
+                                            }}
                                         />
                                     )}
                                     <tab.icon className="w-4 h-4 relative z-10" />
-                                    <span className="text-sm font-medium relative z-10">{tab.label}</span>
+                                    <span className="text-sm font-medium relative z-10">
+                                        {tab.label}
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -172,9 +178,13 @@ function ProfilePage() {
                                                             <span className="text-sm font-medium text-white">
                                                                 {execution.language.toUpperCase()}
                                                             </span>
-                                                            <span className="text-xs text-gray-400">•</span>
                                                             <span className="text-xs text-gray-400">
-                                                                {new Date(execution.createdAt).toLocaleString()}
+                                                                •
+                                                            </span>
+                                                            <span className="text-xs text-gray-400">
+                                                                {new Date(
+                                                                    execution.createdAt
+                                                                ).toLocaleString()}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
@@ -185,14 +195,19 @@ function ProfilePage() {
                                                                         : "bg-green-500/10 text-green-400"
                                                                 }`}
                                                             >
-                                                                {execution.error ? "Error" : "Success"}
+                                                                {execution.error
+                                                                    ? "Error"
+                                                                    : "Success"}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="p-4 bg-black/20 rounded-b-xl border border-t-0 border-gray-800/50">
-                                                <CodeBlock code={execution.code} language={execution.language} />
+                                                <CodeBlock
+                                                    code={execution.code}
+                                                    language={execution.language}
+                                                />
                                                 {(execution.output || execution.error) && (
                                                     <div className="mt-4 p-4 rounded-lg bg-black/40">
                                                         <h4 className="text-sm font-medium text-gray-400 mb-2">
@@ -265,7 +280,9 @@ function ProfilePage() {
                                                                 className="absolute top-6 right-6 z-10"
                                                                 onClick={(e) => e.preventDefault()}
                                                             >
-                                                                <StarButton snippetId={snippet.id} />
+                                                                <StarButton
+                                                                    snippetId={snippet.id}
+                                                                />
                                                             </div>
                                                         </div>
                                                         <h2 className="text-xl font-semibold text-white mb-3 line-clamp-1 group-hover:text-blue-400 transition-colors">
@@ -275,7 +292,9 @@ function ProfilePage() {
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-4 h-4" />
                                                                 <span>
-                                                                    {new Date(snippet.createdAt).toLocaleDateString()}
+                                                                    {new Date(
+                                                                        snippet.createdAt
+                                                                    ).toLocaleDateString()}
                                                                 </span>
                                                             </div>
                                                             <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -300,7 +319,8 @@ function ProfilePage() {
                                                 No starred snippets yet
                                             </h3>
                                             <p className="text-gray-500">
-                                                Start exploring and star the snippets you find useful!
+                                                Start exploring and star the snippets you find
+                                                useful!
                                             </p>
                                         </div>
                                     )}

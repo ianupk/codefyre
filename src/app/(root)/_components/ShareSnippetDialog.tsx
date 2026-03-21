@@ -1,11 +1,10 @@
 "use client";
-
 import { useCodeEditorRestore } from "@/restore/useCodeEditorRestore";
 import { useState } from "react";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
-function ShareSnippetDialog({ onClose }: { onClose: () => void }) {
+export default function ShareSnippetDialog({ onClose }: { onClose: () => void }) {
     const [title, setTitle] = useState("");
     const [isSharing, setIsSharing] = useState(false);
     const { language, getCode } = useCodeEditorRestore();
@@ -13,74 +12,153 @@ function ShareSnippetDialog({ onClose }: { onClose: () => void }) {
     const handleShare = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSharing(true);
-
         try {
-            const code = getCode();
             const res = await fetch("/api/snippets", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, language, code }),
+                body: JSON.stringify({ title, language, code: getCode() }),
             });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error ?? "Failed to share snippet");
-            }
-
+            if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
             onClose();
-            setTitle("");
-            toast.success("Snippet shared successfully");
-        } catch (error) {
-            console.error("Error creating snippet:", error);
-            toast.error(error instanceof Error ? error.message : "Error creating snippet");
+            toast.success("Snippet shared!");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Error");
         } finally {
             setIsSharing(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#1e1e2e] rounded-lg p-6 w-full max-w-md">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-white">Share Snippet</h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-300">
-                        <X className="w-5 h-5" />
+        <div
+            style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.6)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 500,
+                backdropFilter: "blur(4px)",
+            }}
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+            <div
+                style={{
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border-default)",
+                    borderRadius: "var(--r-xl)",
+                    padding: 22,
+                    width: "100%",
+                    maxWidth: 380,
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+                    animation: "fadeIn 0.15s ease-out",
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 18,
+                    }}
+                >
+                    <span
+                        style={{
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: "var(--text-primary)",
+                            fontFamily: "Inter, sans-serif",
+                        }}
+                    >
+                        Share Snippet
+                    </span>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: "none",
+                            border: "none",
+                            color: "var(--text-muted)",
+                            cursor: "pointer",
+                            display: "flex",
+                            padding: 4,
+                            borderRadius: "var(--r)",
+                        }}
+                        className="hover:bg-[var(--bg-overlay)] hover:text-white transition-all"
+                    >
+                        <X size={14} />
                     </button>
                 </div>
-
                 <form onSubmit={handleShare}>
-                    <div className="mb-4">
-                        <label
-                            htmlFor="title"
-                            className="block text-sm font-medium text-gray-400 mb-2"
-                        >
-                            Title
-                        </label>
-                        <input
-                            type="text"
-                            id="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-3 py-2 bg-[#181825] border border-[#313244] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter snippet title"
-                            required
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-3">
+                    <label
+                        style={{
+                            display: "block",
+                            fontSize: 12,
+                            fontWeight: 500,
+                            color: "var(--text-secondary)",
+                            marginBottom: 6,
+                            fontFamily: "Inter, sans-serif",
+                        }}
+                    >
+                        Title
+                    </label>
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="My awesome snippet…"
+                        required
+                        autoFocus
+                        style={{
+                            width: "100%",
+                            padding: "10px 12px",
+                            background: "var(--bg-input)",
+                            border: "1px solid var(--border-default)",
+                            borderRadius: "var(--r-lg)",
+                            color: "var(--text-primary)",
+                            fontSize: 14,
+                            outline: "none",
+                            fontFamily: "Inter, sans-serif",
+                            marginBottom: 16,
+                            transition: "border-color 0.15s",
+                            boxSizing: "border-box",
+                        }}
+                        onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                        onBlur={(e) => (e.target.style.borderColor = "var(--border-default)")}
+                    />
+                    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-400 hover:text-gray-300"
+                            style={{
+                                padding: "8px 16px",
+                                fontSize: 13,
+                                color: "var(--text-secondary)",
+                                background: "var(--bg-surface)",
+                                border: "1px solid var(--border-default)",
+                                borderRadius: "var(--r-lg)",
+                                cursor: "pointer",
+                                fontFamily: "Inter, sans-serif",
+                            }}
+                            className="hover:text-white hover:border-[var(--border-strong)] transition-all"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSharing}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                            style={{
+                                padding: "8px 18px",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: "#000",
+                                background: isSharing ? "rgba(255,161,22,0.5)" : "var(--accent)",
+                                border: "none",
+                                borderRadius: "var(--r-lg)",
+                                cursor: isSharing ? "not-allowed" : "pointer",
+                                fontFamily: "Inter, sans-serif",
+                            }}
                         >
-                            {isSharing ? "Sharing..." : "Share"}
+                            {isSharing ? "Sharing…" : "Share"}
                         </button>
                     </div>
                 </form>
@@ -88,4 +166,3 @@ function ShareSnippetDialog({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
-export default ShareSnippetDialog;

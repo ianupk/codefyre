@@ -38,6 +38,7 @@ export const useCodeEditorRestore = create<
         editor: null,
         executionResult: null,
         stdin: "",
+        executionTime: null,
 
         getCode: () => get().editor?.getValue() || "",
 
@@ -51,23 +52,20 @@ export const useCodeEditorRestore = create<
             localStorage.setItem("editor-theme", theme);
             set({ theme });
         },
-
         setFontSize: (fontSize: number) => {
             localStorage.setItem("editor-font-size", fontSize.toString());
             set({ fontSize });
         },
-
         setStdin: (stdin: string) => set({ stdin }),
 
         setLanguage: (language: string) => {
             if (!isValidLanguage(language)) {
-                console.warn(`Invalid language: ${language}. Using default.`);
                 language = DEFAULT_LANGUAGE;
             }
             const currentCode = get().editor?.getValue();
             if (currentCode) localStorage.setItem(`editor-code-${get().language}`, currentCode);
             localStorage.setItem("editor-language", language);
-            set({ language, output: "", error: null });
+            set({ language, output: "", error: null, executionTime: null });
         },
 
         runCode: async () => {
@@ -78,41 +76,40 @@ export const useCodeEditorRestore = create<
                 return;
             }
 
-            set({ isRunning: true, error: null, output: "" });
+            set({ isRunning: true, error: null, output: "", executionTime: null });
 
             try {
                 const ocLanguage = LANGUAGE_CONFIG[language].ocLanguage;
-
                 const res = await fetch("/api/execute", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        source_code: code,
-                        language: ocLanguage,
-                        stdin: stdin, // ← uses the stdin from state
-                    }),
+                    body: JSON.stringify({ source_code: code, language: ocLanguage, stdin }),
                 });
 
                 const data = await res.json();
 
                 if (!res.ok) {
                     const msg = data.error || `Execution failed (${res.status})`;
-                    set({ error: msg, executionResult: { code, output: "", error: msg } });
+                    set({
+                        error: msg,
+                        executionResult: { code, output: "", error: msg },
+                        executionTime: null,
+                    });
                     return;
                 }
-
                 if (data.exception) {
                     set({
                         error: data.exception,
                         executionResult: { code, output: "", error: data.exception },
+                        executionTime: data.executionTime ?? null,
                     });
                     return;
                 }
-
                 if (data.stderr) {
                     set({
                         error: data.stderr,
                         executionResult: { code, output: "", error: data.stderr },
+                        executionTime: data.executionTime ?? null,
                     });
                     return;
                 }
@@ -121,13 +118,19 @@ export const useCodeEditorRestore = create<
                 set({
                     output: output.trim(),
                     error: null,
-                    executionResult: { code, output: output.trim(), error: null },
+                    executionTime: data.executionTime ?? null,
+                    executionResult: {
+                        code,
+                        output: output.trim(),
+                        error: null,
+                        executionTime: data.executionTime ?? null,
+                    },
                 });
             } catch (err) {
-                console.error("Error running code:", err);
                 set({
                     error: "Error running code",
                     executionResult: { code, output: "", error: "Error running code" },
+                    executionTime: null,
                 });
             } finally {
                 set({ isRunning: false });

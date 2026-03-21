@@ -1,34 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Routes that require authentication
-const PROTECTED_ROUTES = ["/profile"];
-
-// Routes only for unauthenticated users
-const AUTH_ROUTES = ["/sign-in", "/sign-up"];
+const PROTECTED = ["/editor", "/dashboard", "/profile"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-
-    // Check for Better Auth session cookie
-    const sessionCookie =
+    const session =
         request.cookies.get("better-auth.session_token") ??
         request.cookies.get("__Secure-better-auth.session_token");
+    const authed = !!session;
 
-    const isAuthenticated = !!sessionCookie;
+    // Protect editor, dashboard etc
+    if (PROTECTED.some((r) => pathname.startsWith(r)) && !authed)
+        return NextResponse.redirect(new URL("/", request.url));
 
-    // Redirect unauthenticated users away from protected routes
-    if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-        if (!isAuthenticated) {
-            return NextResponse.redirect(new URL("/sign-in", request.url));
-        }
-    }
-
-    // Redirect authenticated users away from auth pages
-    if (AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
-        if (isAuthenticated) {
-            return NextResponse.redirect(new URL("/", request.url));
-        }
-    }
+    // If authed and hitting auth page, go to editor
+    if (pathname === "/" && authed) return NextResponse.redirect(new URL("/editor", request.url));
 
     return NextResponse.next();
 }

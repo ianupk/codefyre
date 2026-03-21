@@ -27,7 +27,10 @@ export async function POST(req: NextRequest) {
         const { title, language, code } = await req.json();
 
         if (!title || !language || !code) {
-            return NextResponse.json({ error: "title, language and code are required" }, { status: 400 });
+            return NextResponse.json(
+                { error: "title, language and code are required" },
+                { status: 400 }
+            );
         }
 
         const snippet = await db.snippet.create({

@@ -57,7 +57,11 @@ function ProfileHeader({ userStats, user }: ProfileHeaderProps) {
             color: "from-yellow-500 to-orange-500",
             gradient: "group-hover:via-yellow-400",
             description: "Top language in stars",
-            metric: { label: "Favorite", value: userStats?.favoriteLanguage ?? "N/A", icon: Trophy },
+            metric: {
+                label: "Favorite",
+                value: userStats?.favoriteLanguage ?? "N/A",
+                icon: Trophy,
+            },
         },
     ];
 

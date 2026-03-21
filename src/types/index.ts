@@ -5,7 +5,6 @@ export interface Theme {
     label: string;
     color: string;
 }
-
 export interface Language {
     id: string;
     label: string;
@@ -14,18 +13,17 @@ export interface Language {
     defaultCode: string;
     ocLanguage: string;
 }
-
 export interface ExecuteCodeResponse {
     stdout: string;
     stderr: string;
     exception: string | null;
     executionTime: number | null;
 }
-
 export interface ExecutionResult {
     code: string;
     output: string;
     error: string | null;
+    executionTime?: number | null;
 }
 
 export interface CodeEditorState {
@@ -36,6 +34,7 @@ export interface CodeEditorState {
     theme: string;
     fontSize: number;
     stdin: string;
+    executionTime: number | null;
     editor: MonacoEditor.IStandaloneCodeEditor | null;
     executionResult: ExecutionResult | null;
     setEditor: (editor: MonacoEditor.IStandaloneCodeEditor) => void;

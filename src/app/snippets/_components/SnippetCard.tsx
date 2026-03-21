@@ -1,118 +1,284 @@
 "use client";
-
 import { Snippet } from "@/types";
 import { useSession } from "@/lib/auth-client";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { Clock, Trash2, User } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import StarButton from "@/components/StarButton";
 
-function SnippetCard({ snippet }: { snippet: Snippet }) {
+const TrashIco = () => (
+    <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+);
+const UserIco = () => (
+    <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+    >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+    </svg>
+);
+const ClockIco = () => (
+    <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+    >
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+    </svg>
+);
+
+export default function SnippetCard({ snippet }: { snippet: Snippet }) {
     const { data: session } = useSession();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [hovered, setHovered] = useState(false);
 
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
             const res = await fetch(`/api/snippets/${snippet.id}`, { method: "DELETE" });
-            if (!res.ok) throw new Error("Failed to delete");
+            if (!res.ok) throw new Error("Failed");
             toast.success("Snippet deleted");
-            // Refresh the page to update the list
             window.location.reload();
-        } catch (error) {
-            console.error("Error deleting snippet:", error);
-            toast.error("Error deleting snippet");
+        } catch {
+            toast.error("Error deleting");
         } finally {
             setIsDeleting(false);
         }
     };
 
     return (
-        <motion.div layout className="group relative" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-            <Link href={`/snippets/${snippet.id}`} className="h-full block">
-                <div className="relative h-full bg-[#1e1e2e]/80 backdrop-blur-sm rounded-xl border border-[#313244]/50 hover:border-[#313244] transition-all duration-300 overflow-hidden">
-                    <div className="p-6">
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition-all duration-500" />
-                                    <div className="relative p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 group-hover:from-blue-500/20 group-hover:to-purple-500/20 transition-all duration-500">
-                                        <Image
-                                            src={`/${snippet.language}.png`}
-                                            alt={`${snippet.language} logo`}
-                                            className="w-6 h-6 object-contain relative z-10"
-                                            width={24}
-                                            height={24}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-lg text-xs font-medium">
-                                        {snippet.language}
-                                    </span>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <Clock className="size-3" />
-                                        {new Date(snippet.createdAt).toLocaleDateString()}
-                                    </div>
-                                </div>
-                            </div>
+        <div
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                background: hovered ? "var(--bg-elevated)" : "var(--bg-surface)",
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderColor: hovered ? "rgba(249,98,159,0.35)" : "var(--border-default)",
+                borderRadius: "var(--r-xl)",
+                overflow: "hidden",
+                transition: "all 0.2s",
+                boxShadow: hovered ? "0 6px 24px rgba(249,98,159,0.1)" : "none",
+                position: "relative",
+            }}
+        >
+            {/* Pink accent top bar on hover */}
+            <div
+                style={{
+                    height: 2,
+                    background: "linear-gradient(90deg,#F9629F,rgba(249,98,159,0.3),transparent)",
+                    opacity: hovered ? 1 : 0,
+                    transition: "opacity 0.2s",
+                }}
+            />
 
-                            <div
-                                className="absolute top-5 right-5 z-10 flex gap-4 items-center"
-                                onClick={(e) => e.preventDefault()}
-                            >
-                                <StarButton snippetId={snippet.id} />
-
-                                {session?.user.id === snippet.userId && (
-                                    <button
-                                        onClick={handleDelete}
-                                        disabled={isDeleting}
-                                        className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${
-                                            isDeleting
-                                                ? "bg-red-500/20 text-red-400 cursor-not-allowed"
-                                                : "bg-gray-500/10 text-gray-400 hover:bg-red-500/10 hover:text-red-400"
-                                        }`}
-                                    >
-                                        {isDeleting ? (
-                                            <div className="size-3.5 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                                        ) : (
-                                            <Trash2 className="size-3.5" />
-                                        )}
-                                    </button>
-                                )}
-                            </div>
+            <Link
+                href={`/snippets/${snippet.id}`}
+                style={{ textDecoration: "none", display: "block", padding: "16px 18px 14px" }}
+            >
+                {/* Header */}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 12,
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                        <div
+                            style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: "var(--r-lg)",
+                                background: "rgba(249,98,159,0.08)",
+                                borderWidth: 1,
+                                borderStyle: "solid",
+                                borderColor: "rgba(249,98,159,0.15)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                            }}
+                        >
+                            <Image
+                                src={`/${snippet.language}.png`}
+                                alt={snippet.language}
+                                width={18}
+                                height={18}
+                                style={{ objectFit: "contain" }}
+                            />
                         </div>
-
-                        {/* Content */}
-                        <div className="space-y-4">
-                            <div>
-                                <h2 className="text-xl font-semibold text-white mb-2 line-clamp-1 group-hover:text-blue-400 transition-colors">
-                                    {snippet.title}
-                                </h2>
-                                <div className="flex items-center gap-3 text-sm text-gray-400">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-1 rounded-md bg-gray-800/50">
-                                            <User className="size-3" />
-                                        </div>
-                                        <span className="truncate max-w-[150px]">{snippet.userName}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="relative group/code">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-purple-500/5 rounded-lg opacity-0 group-hover/code:opacity-100 transition-all" />
-                                <pre className="relative bg-black/30 rounded-lg p-4 overflow-hidden text-sm text-gray-300 font-mono line-clamp-3">
-                                    {snippet.code}
-                                </pre>
+                        <div>
+                            <span
+                                style={{
+                                    display: "inline-block",
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    color: "#F9629F",
+                                    background: "rgba(249,98,159,0.08)",
+                                    borderWidth: 1,
+                                    borderStyle: "solid",
+                                    borderColor: "rgba(249,98,159,0.18)",
+                                    padding: "1px 8px",
+                                    borderRadius: 100,
+                                    fontFamily: "JetBrains Mono,monospace",
+                                }}
+                            >
+                                {snippet.language}
+                            </span>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    marginTop: 3,
+                                    fontSize: 11,
+                                    color: "var(--text-muted)",
+                                    fontFamily: "Inter,sans-serif",
+                                }}
+                            >
+                                <ClockIco />
+                                {new Date(snippet.createdAt).toLocaleDateString()}
                             </div>
                         </div>
                     </div>
+                    <div
+                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                        onClick={(e) => e.preventDefault()}
+                    >
+                        <StarButton snippetId={snippet.id} />
+                        {session?.user.id === snippet.userId && (
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    padding: "5px 7px",
+                                    borderRadius: "var(--r)",
+                                    borderWidth: 1,
+                                    borderStyle: "solid",
+                                    borderColor: "var(--border-subtle)",
+                                    background: "transparent",
+                                    color: "var(--text-muted)",
+                                    cursor: "pointer",
+                                    transition: "all 0.15s",
+                                }}
+                                className="hover:bg-[rgba(239,68,68,0.08)] hover:text-red-400 hover:border-[rgba(239,68,68,0.3)]"
+                            >
+                                {isDeleting ? (
+                                    <span
+                                        style={{
+                                            width: 11,
+                                            height: 11,
+                                            borderWidth: 2,
+                                            borderStyle: "solid",
+                                            borderColor: "rgba(239,68,68,0.3)",
+                                            borderTopColor: "#ef4444",
+                                            borderRadius: "50%",
+                                            animation: "spin 0.6s linear infinite",
+                                            display: "inline-block",
+                                        }}
+                                    />
+                                ) : (
+                                    <TrashIco />
+                                )}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Title */}
+                <h2
+                    style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "var(--text-primary)",
+                        marginBottom: 6,
+                        fontFamily: "Inter,sans-serif",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        transition: "color 0.15s",
+                    }}
+                    className={hovered ? "text-[#F9629F]" : ""}
+                >
+                    {snippet.title}
+                </h2>
+
+                {/* Author */}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 12,
+                        color: "var(--text-muted)",
+                        marginBottom: 12,
+                        fontFamily: "Inter,sans-serif",
+                    }}
+                >
+                    <UserIco />
+                    {snippet.userName}
+                </div>
+
+                {/* Code preview */}
+                <div
+                    style={{
+                        background: "var(--bg-input)",
+                        borderRadius: "var(--r-lg)",
+                        padding: "8px 10px",
+                        borderWidth: 1,
+                        borderStyle: "solid",
+                        borderColor: "var(--border-subtle)",
+                    }}
+                >
+                    <pre
+                        style={{
+                            fontSize: 11,
+                            color: "var(--text-secondary)",
+                            margin: 0,
+                            fontFamily: "JetBrains Mono,monospace",
+                            lineHeight: 1.6,
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical" as const,
+                        }}
+                    >
+                        {snippet.code}
+                    </pre>
                 </div>
             </Link>
-        </motion.div>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
     );
 }
-export default SnippetCard;
