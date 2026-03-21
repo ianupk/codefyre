@@ -1,9 +1,8 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
-import { usePaginatedQuery, useQuery } from "convex/react";
+
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { api } from "../../../convex/_generated/api";
+import { useState, useEffect, useCallback } from "react";
 import NavigationHeader from "@/components/NavigationHeader";
 import ProfileHeader from "./_components/ProfileHeader";
 import ProfileHeaderSkeleton from "./_components/ProfileHeaderSkeleton";
@@ -14,69 +13,104 @@ import Link from "next/link";
 import StarButton from "@/components/StarButton";
 import CodeBlock from "./_components/CodeBlock";
 
+interface Execution {
+    id: string;
+    language: string;
+    code: string;
+    output: string | null;
+    error: string | null;
+    createdAt: string;
+}
+
+interface Snippet {
+    id: string;
+    title: string;
+    language: string;
+    code: string;
+    createdAt: string;
+}
+
+interface UserStats {
+    totalExecutions: number;
+    languagesCount: number;
+    languages: string[];
+    last24Hours: number;
+    favoriteLanguage: string;
+    languageStats: Record<string, number>;
+    mostStarredLanguage: string;
+}
+
 const TABS = [
-    {
-        id: "executions",
-        label: "Code Executions",
-        icon: ListVideo,
-    },
-    {
-        id: "starred",
-        label: "Starred Snippets",
-        icon: Star,
-    },
+    { id: "executions", label: "Code Executions", icon: ListVideo },
+    { id: "starred", label: "Starred Snippets", icon: Star },
 ];
 
 function ProfilePage() {
-    const { user, isLoaded } = useUser();
+    const { data: session, isPending } = useSession();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"executions" | "starred">("executions");
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
+    const [starredSnippets, setStarredSnippets] = useState<Snippet[]>([]);
+    const [executions, setExecutions] = useState<Execution[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-    const userStats = useQuery(api.codeExecutions.getUserStats, {
-        userId: user?.id ?? "",
-    });
+    const fetchStats = useCallback(async () => {
+        const res = await fetch("/api/executions?stats=true");
+        const data = await res.json();
+        setUserStats(data);
+    }, []);
 
-    const starredSnippets = useQuery(api.snippets.getStarredSnippets);
+    const fetchExecutions = useCallback(async (p = 1) => {
+        const res = await fetch(`/api/executions?page=${p}&limit=5`);
+        const data = await res.json();
+        if (p === 1) {
+            setExecutions(data.executions);
+        } else {
+            setExecutions((prev) => [...prev, ...data.executions]);
+        }
+        setHasMore(data.hasMore);
+        setPage(p);
+    }, []);
 
-    const {
-        results: executions,
-        status: executionStatus,
-        isLoading: isLoadingExecutions,
-        loadMore,
-    } = usePaginatedQuery(
-        api.codeExecutions.getUserExecutions,
-        {
-            userId: user?.id ?? "",
-        },
-        { initialNumItems: 5 }
-    );
+    const fetchStarred = useCallback(async () => {
+        const res = await fetch("/api/user");
+        const data = await res.json();
+        setStarredSnippets(data.starredSnippets ?? []);
+    }, []);
 
-    const userData = useQuery(api.users.getUser, { userId: user?.id ?? "" });
+    useEffect(() => {
+        if (!session && !isPending) {
+            router.push("/sign-in");
+            return;
+        }
+        if (session) {
+            fetchStats();
+            fetchExecutions(1);
+            fetchStarred();
+        }
+    }, [session, isPending, router, fetchStats, fetchExecutions, fetchStarred]);
 
-    const handleLoadMore = () => {
-        if (executionStatus === "CanLoadMore") loadMore(5);
+    const handleLoadMore = async () => {
+        setLoadingMore(true);
+        await fetchExecutions(page + 1);
+        setLoadingMore(false);
     };
 
-    if (!user && isLoaded) return router.push("/");
+    if (isPending || (!session && !isPending)) return null;
 
     return (
         <div className="min-h-screen bg-[#0a0a0f]">
             <NavigationHeader />
-
             <div className="max-w-7xl mx-auto px-4 py-12">
-                {/* Profile Header */}
-
-                {userStats && userData && (
-                    <ProfileHeader userStats={userStats} userData={userData} user={user!} />
+                {userStats && session ? (
+                    <ProfileHeader userStats={userStats} user={session.user} />
+                ) : (
+                    <ProfileHeaderSkeleton />
                 )}
 
-                {(userStats === undefined || !isLoaded) && <ProfileHeaderSkeleton />}
-
-                {/* Main content */}
-                <div
-                    className="bg-gradient-to-br from-[#12121a] to-[#1a1a2e] rounded-3xl shadow-2xl 
-        shadow-black/50 border border-gray-800/50 backdrop-blur-xl overflow-hidden"
-                >
+                <div className="bg-gradient-to-br from-[#12121a] to-[#1a1a2e] rounded-3xl shadow-2xl shadow-black/50 border border-gray-800/50 backdrop-blur-xl overflow-hidden">
                     {/* Tabs */}
                     <div className="border-b border-gray-800/50">
                         <div className="flex space-x-1 p-4">
@@ -94,17 +128,11 @@ function ProfilePage() {
                                         <motion.div
                                             layoutId="activeTab"
                                             className="absolute inset-0 bg-blue-500/10 rounded-lg"
-                                            transition={{
-                                                type: "spring",
-                                                bounce: 0.2,
-                                                duration: 0.6,
-                                            }}
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
                                     <tab.icon className="w-4 h-4 relative z-10" />
-                                    <span className="text-sm font-medium relative z-10">
-                                        {tab.label}
-                                    </span>
+                                    <span className="text-sm font-medium relative z-10">{tab.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -120,12 +148,11 @@ function ProfilePage() {
                             transition={{ duration: 0.2 }}
                             className="p-6"
                         >
-                            {/* ACTIVE TAB IS EXECUTIONS: */}
                             {activeTab === "executions" && (
                                 <div className="space-y-6">
-                                    {executions?.map((execution) => (
+                                    {executions.map((execution) => (
                                         <div
-                                            key={execution._id}
+                                            key={execution.id}
                                             className="group rounded-xl overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:shadow-md hover:shadow-blue-500/50"
                                         >
                                             <div className="flex items-center justify-between p-4 bg-black/30 border border-gray-800/50 rounded-t-xl">
@@ -145,13 +172,9 @@ function ProfilePage() {
                                                             <span className="text-sm font-medium text-white">
                                                                 {execution.language.toUpperCase()}
                                                             </span>
+                                                            <span className="text-xs text-gray-400">•</span>
                                                             <span className="text-xs text-gray-400">
-                                                                •
-                                                            </span>
-                                                            <span className="text-xs text-gray-400">
-                                                                {new Date(
-                                                                    execution._creationTime
-                                                                ).toLocaleString()}
+                                                                {new Date(execution.createdAt).toLocaleString()}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-2">
@@ -162,32 +185,21 @@ function ProfilePage() {
                                                                         : "bg-green-500/10 text-green-400"
                                                                 }`}
                                                             >
-                                                                {execution.error
-                                                                    ? "Error"
-                                                                    : "Success"}
+                                                                {execution.error ? "Error" : "Success"}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div className="p-4 bg-black/20 rounded-b-xl border border-t-0 border-gray-800/50">
-                                                <CodeBlock
-                                                    code={execution.code}
-                                                    language={execution.language}
-                                                />
-
+                                                <CodeBlock code={execution.code} language={execution.language} />
                                                 {(execution.output || execution.error) && (
                                                     <div className="mt-4 p-4 rounded-lg bg-black/40">
                                                         <h4 className="text-sm font-medium text-gray-400 mb-2">
                                                             Output
                                                         </h4>
                                                         <pre
-                                                            className={`text-sm ${
-                                                                execution.error
-                                                                    ? "text-red-400"
-                                                                    : "text-green-400"
-                                                            }`}
+                                                            className={`text-sm ${execution.error ? "text-red-400" : "text-green-400"}`}
                                                         >
                                                             {execution.error || execution.output}
                                                         </pre>
@@ -197,67 +209,54 @@ function ProfilePage() {
                                         </div>
                                     ))}
 
-                                    {isLoadingExecutions ? (
+                                    {executions.length === 0 && (
                                         <div className="text-center py-12">
-                                            <Loader2 className="w-12 h-12 text-gray-600 mx-auto mb-4 animate-spin" />
+                                            <Code className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                                             <h3 className="text-lg font-medium text-gray-400 mb-2">
-                                                Loading code executions...
+                                                No code executions yet
                                             </h3>
+                                            <p className="text-gray-500">
+                                                Start coding to see your execution history!
+                                            </p>
                                         </div>
-                                    ) : (
-                                        executions.length === 0 && (
-                                            <div className="text-center py-12">
-                                                <Code className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                                                <h3 className="text-lg font-medium text-gray-400 mb-2">
-                                                    No code executions yet
-                                                </h3>
-                                                <p className="text-gray-500">
-                                                    Start coding to see your execution history!
-                                                </p>
-                                            </div>
-                                        )
                                     )}
 
-                                    {/* Load More Button */}
-                                    {executionStatus === "CanLoadMore" && (
+                                    {hasMore && (
                                         <div className="flex justify-center mt-8">
                                             <button
                                                 onClick={handleLoadMore}
-                                                className="px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg flex items-center gap-2 
-                        transition-colors"
+                                                disabled={loadingMore}
+                                                className="px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
                                             >
-                                                Load More
-                                                <ChevronRight className="w-4 h-4" />
+                                                {loadingMore ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        Load More
+                                                        <ChevronRight className="w-4 h-4" />
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     )}
                                 </div>
                             )}
 
-                            {/* ACTIVE TAB IS STARS: */}
                             {activeTab === "starred" && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {starredSnippets?.map((snippet) => (
-                                        <div key={snippet._id} className="group relative">
-                                            <Link href={`/snippets/${snippet._id}`}>
-                                                <div
-                                                    className="bg-black/20 rounded-xl border border-gray-800/50 hover:border-gray-700/50 
-                          transition-all duration-300 overflow-hidden h-full group-hover:transform
-                        group-hover:scale-[1.02]"
-                                                >
+                                    {starredSnippets.map((snippet) => (
+                                        <div key={snippet.id} className="group relative">
+                                            <Link href={`/snippets/${snippet.id}`}>
+                                                <div className="bg-black/20 rounded-xl border border-gray-800/50 hover:border-gray-700/50 transition-all duration-300 overflow-hidden h-full group-hover:transform group-hover:scale-[1.02]">
                                                     <div className="p-6">
                                                         <div className="flex items-center justify-between mb-4">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="relative">
-                                                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity" />
-                                                                    <Image
-                                                                        src={`/${snippet.language}.png`}
-                                                                        alt={`${snippet.language} logo`}
-                                                                        className="relative z-10"
-                                                                        width={40}
-                                                                        height={40}
-                                                                    />
-                                                                </div>
+                                                                <Image
+                                                                    src={`/${snippet.language}.png`}
+                                                                    alt={`${snippet.language} logo`}
+                                                                    width={40}
+                                                                    height={40}
+                                                                />
                                                                 <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-lg text-sm">
                                                                     {snippet.language}
                                                                 </span>
@@ -266,9 +265,7 @@ function ProfilePage() {
                                                                 className="absolute top-6 right-6 z-10"
                                                                 onClick={(e) => e.preventDefault()}
                                                             >
-                                                                <StarButton
-                                                                    snippetId={snippet._id}
-                                                                />
+                                                                <StarButton snippetId={snippet.id} />
                                                             </div>
                                                         </div>
                                                         <h2 className="text-xl font-semibold text-white mb-3 line-clamp-1 group-hover:text-blue-400 transition-colors">
@@ -278,9 +275,7 @@ function ProfilePage() {
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-4 h-4" />
                                                                 <span>
-                                                                    {new Date(
-                                                                        snippet._creationTime
-                                                                    ).toLocaleDateString()}
+                                                                    {new Date(snippet.createdAt).toLocaleDateString()}
                                                                 </span>
                                                             </div>
                                                             <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -298,15 +293,14 @@ function ProfilePage() {
                                         </div>
                                     ))}
 
-                                    {(!starredSnippets || starredSnippets.length === 0) && (
+                                    {starredSnippets.length === 0 && (
                                         <div className="col-span-full text-center py-12">
                                             <Star className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                                             <h3 className="text-lg font-medium text-gray-400 mb-2">
                                                 No starred snippets yet
                                             </h3>
                                             <p className="text-gray-500">
-                                                Start exploring and star the snippets you find
-                                                useful!
+                                                Start exploring and star the snippets you find useful!
                                             </p>
                                         </div>
                                     )}

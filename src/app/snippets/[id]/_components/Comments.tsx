@@ -1,42 +1,75 @@
-import { SignInButton, useUser } from "@clerk/nextjs";
-import { Id } from "../../../../../convex/_generated/dataModel";
-import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+"use client";
+
+import { useSession } from "@/lib/auth-client";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { MessageSquare } from "lucide-react";
 import Comment from "./Comment";
 import CommentForm from "./CommentForm";
+import Link from "next/link";
 
-function Comments({ snippetId }: { snippetId: Id<"snippets"> }) {
-    const { user } = useUser();
+interface CommentData {
+    id: string;
+    snippetId: string;
+    userId: string;
+    userName: string;
+    content: string;
+    createdAt: string;
+}
+
+function Comments({ snippetId }: { snippetId: string }) {
+    const { data: session } = useSession();
+    const [comments, setComments] = useState<CommentData[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [deletinCommentId, setDeletingCommentId] = useState<string | null>(null);
+    const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
 
-    const comments = useQuery(api.snippets.getComments, { snippetId }) || [];
-    const addComment = useMutation(api.snippets.addComment);
-    const deleteComment = useMutation(api.snippets.deleteComment);
+    const fetchComments = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/snippets/${snippetId}/comments`);
+            const data = await res.json();
+            setComments(data);
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+        }
+    }, [snippetId]);
+
+    useEffect(() => {
+        fetchComments();
+    }, [fetchComments]);
 
     const handleSubmitComment = async (content: string) => {
         setIsSubmitting(true);
-
         try {
-            await addComment({ snippetId, content });
+            const res = await fetch(`/api/snippets/${snippetId}/comments`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content }),
+            });
+
+            if (!res.ok) throw new Error("Failed to add comment");
+
+            await fetchComments();
         } catch (error) {
-            console.log("Error adding comment:", error);
+            console.error("Error adding comment:", error);
             toast.error("Something went wrong");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleDeleteComment = async (commentId: Id<"snippetComments">) => {
+    const handleDeleteComment = async (commentId: string) => {
         setDeletingCommentId(commentId);
-
         try {
-            await deleteComment({ commentId });
+            const res = await fetch(
+                `/api/snippets/${snippetId}/comments?commentId=${commentId}`,
+                { method: "DELETE" }
+            );
+
+            if (!res.ok) throw new Error("Failed to delete comment");
+
+            setComments((prev) => prev.filter((c) => c.id !== commentId));
         } catch (error) {
-            console.log("Error deleting comment:", error);
+            console.error("Error deleting comment:", error);
             toast.error("Something went wrong");
         } finally {
             setDeletingCommentId(null);
@@ -53,27 +86,28 @@ function Comments({ snippetId }: { snippetId: Id<"snippets"> }) {
             </div>
 
             <div className="p-6 sm:p-8">
-                {user ? (
+                {session ? (
                     <CommentForm onSubmit={handleSubmitComment} isSubmitting={isSubmitting} />
                 ) : (
                     <div className="bg-[#0a0a0f] rounded-xl p-6 text-center mb-8 border border-[#ffffff0a]">
                         <p className="text-[#808086] mb-4">Sign in to join the discussion</p>
-                        <SignInButton mode="modal">
-                            <button className="px-6 py-2 bg-[#3b82f6] text-white rounded-lg hover:bg-[#2563eb] transition-colors">
-                                Sign In
-                            </button>
-                        </SignInButton>
+                        <Link
+                            href="/sign-in"
+                            className="px-6 py-2 bg-[#3b82f6] text-white rounded-lg hover:bg-[#2563eb] transition-colors inline-block"
+                        >
+                            Sign In
+                        </Link>
                     </div>
                 )}
 
                 <div className="space-y-6">
                     {comments.map((comment) => (
                         <Comment
-                            key={comment._id}
+                            key={comment.id}
                             comment={comment}
                             onDelete={handleDeleteComment}
-                            isDeleting={deletinCommentId === comment._id}
-                            currentUserId={user?.id}
+                            isDeleting={deletingCommentId === comment.id}
+                            currentUserId={session?.user.id}
                         />
                     ))}
                 </div>

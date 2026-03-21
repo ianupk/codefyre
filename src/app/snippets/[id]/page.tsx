@@ -1,9 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
 import { useParams } from "next/navigation";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { useEffect, useState } from "react";
 import SnippetLoadingSkeleton from "./_components/SnippetLoadingSkeleton";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Clock, Code, MessageSquare, User } from "lucide-react";
@@ -13,22 +11,40 @@ import CopyButton from "./_components/CopyButton";
 import Comments from "./_components/Comments";
 import Image from "next/image";
 
+interface Snippet {
+    id: string;
+    title: string;
+    language: string;
+    code: string;
+    userName: string;
+    createdAt: string;
+}
+
 function SnippetDetailPage() {
-    const snippetId = useParams().id;
+    const { id } = useParams<{ id: string }>();
+    const [snippet, setSnippet] = useState<Snippet | null>(null);
+    const [commentCount, setCommentCount] = useState(0);
+    const [loading, setLoading] = useState(true);
 
-    const snippet = useQuery(api.snippets.getSnippetById, {
-        snippetId: snippetId as Id<"snippets">,
-    });
-    const comments = useQuery(api.snippets.getComments, {
-        snippetId: snippetId as Id<"snippets">,
-    });
+    useEffect(() => {
+        Promise.all([
+            fetch(`/api/snippets/${id}`).then((r) => r.json()),
+            fetch(`/api/snippets/${id}/comments`).then((r) => r.json()),
+        ])
+            .then(([snippetData, comments]) => {
+                setSnippet(snippetData);
+                setCommentCount(comments.length);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [id]);
 
-    if (snippet === undefined) return <SnippetLoadingSkeleton />;
+    if (loading) return <SnippetLoadingSkeleton />;
+    if (!snippet) return <div className="text-white p-8">Snippet not found</div>;
 
     return (
         <div className="min-h-screen bg-[#0a0a0f]">
             <NavigationHeader />
-
             <main className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
                 <div className="max-w-[1200px] mx-auto">
                     {/* Header */}
@@ -39,6 +55,8 @@ function SnippetDetailPage() {
                                     <Image
                                         src={`/${snippet.language}.png`}
                                         alt={`${snippet.language} logo`}
+                                        width={40}
+                                        height={40}
                                         className="w-full h-full object-contain"
                                     />
                                 </div>
@@ -54,14 +72,12 @@ function SnippetDetailPage() {
                                         <div className="flex items-center gap-2 text-[#8b8b8d]">
                                             <Clock className="w-4 h-4" />
                                             <span>
-                                                {new Date(
-                                                    snippet._creationTime
-                                                ).toLocaleDateString()}
+                                                {new Date(snippet.createdAt).toLocaleDateString()}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2 text-[#8b8b8d]">
                                             <MessageSquare className="w-4 h-4" />
-                                            <span>{comments?.length} comments</span>
+                                            <span>{commentCount} comments</span>
                                         </div>
                                     </div>
                                 </div>
@@ -83,7 +99,7 @@ function SnippetDetailPage() {
                         </div>
                         <Editor
                             height="600px"
-                            language={LANGUAGE_CONFIG[snippet.language].monacoLanguage}
+                            language={LANGUAGE_CONFIG[snippet.language]?.monacoLanguage ?? snippet.language}
                             value={snippet.code}
                             theme="vs-dark"
                             beforeMount={defineMonacoThemes}
@@ -101,7 +117,7 @@ function SnippetDetailPage() {
                         />
                     </div>
 
-                    <Comments snippetId={snippet._id} />
+                    <Comments snippetId={snippet.id} />
                 </div>
             </main>
         </div>

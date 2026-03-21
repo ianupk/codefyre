@@ -1,20 +1,20 @@
 import { Trash2Icon, UserIcon } from "lucide-react";
-import { Id } from "../../../../../convex/_generated/dataModel";
 import CommentContent from "./CommentContent";
 
 interface CommentProps {
     comment: {
-        _id: Id<"snippetComments">;
-        _creationTime: number;
+        id: string;
         userId: string;
         userName: string;
-        snippetId: Id<"snippets">;
+        snippetId: string;
         content: string;
+        createdAt: string;
     };
-    onDelete: (commentId: Id<"snippetComments">) => void;
+    onDelete: (commentId: string) => void;
     isDeleting: boolean;
     currentUserId?: string;
 }
+
 function Comment({ comment, currentUserId, isDeleting, onDelete }: CommentProps) {
     return (
         <div className="group">
@@ -29,14 +29,14 @@ function Comment({ comment, currentUserId, isDeleting, onDelete }: CommentProps)
                                 {comment.userName}
                             </span>
                             <span className="block text-sm text-[#808086]">
-                                {new Date(comment._creationTime).toLocaleDateString()}
+                                {new Date(comment.createdAt).toLocaleDateString()}
                             </span>
                         </div>
                     </div>
 
                     {comment.userId === currentUserId && (
                         <button
-                            onClick={() => onDelete(comment._id)}
+                            onClick={() => onDelete(comment.id)}
                             disabled={isDeleting}
                             className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/10 rounded-lg transition-all"
                             title="Delete comment"
@@ -45,7 +45,6 @@ function Comment({ comment, currentUserId, isDeleting, onDelete }: CommentProps)
                         </button>
                     )}
                 </div>
-
                 <CommentContent content={comment.content} />
             </div>
         </div>

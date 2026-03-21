@@ -1,5 +1,4 @@
 import type { editor as MonacoEditor } from "monaco-editor";
-import { Id } from "../../convex/_generated/dataModel";
 
 export interface Theme {
     id: string;
@@ -13,7 +12,7 @@ export interface Language {
     logoPath: string;
     monacoLanguage: string;
     defaultCode: string;
-    ocLanguage: string; // OneCompiler language ID
+    ocLanguage: string;
 }
 
 export interface ExecuteCodeResponse {
@@ -47,8 +46,8 @@ export interface CodeEditorState {
 }
 
 export interface Snippet {
-    _id: Id<"snippets">;
-    _creationTime: number;
+    id: string;
+    createdAt: string;
     userId: string;
     language: string;
     code: string;

@@ -1,35 +1,32 @@
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+"use client";
+
 import { Activity, Code2, Star, Timer, TrendingUp, Trophy, UserIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { Id } from "../../../../convex/_generated/dataModel";
-import { UserResource } from "@clerk/types";
 import Image from "next/image";
 
-interface ProfileHeaderProps {
-    userStats: {
-        totalExecutions: number;
-        languagesCount: number;
-        languages: string[];
-        last24Hours: number;
-        favoriteLanguage: string;
-        languageStats: Record<string, number>;
-        mostStarredLanguage: string;
-    };
-    userData: {
-        _id: Id<"users">;
-        _creationTime: number;
-        name: string;
-        userId: string;
-        email: string;
-        isPro: boolean;
-    };
-    user: UserResource;
+interface UserStats {
+    totalExecutions: number;
+    languagesCount: number;
+    languages: string[];
+    last24Hours: number;
+    favoriteLanguage: string;
+    languageStats: Record<string, number>;
+    mostStarredLanguage: string;
 }
 
-function ProfileHeader({ userStats, userData, user }: ProfileHeaderProps) {
-    const starredSnippets = useQuery(api.snippets.getStarredSnippets);
+interface ProfileHeaderUser {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+}
 
+interface ProfileHeaderProps {
+    userStats: UserStats;
+    user: ProfileHeaderUser;
+}
+
+function ProfileHeader({ userStats, user }: ProfileHeaderProps) {
     const STATS = [
         {
             label: "Code Executions",
@@ -39,19 +36,6 @@ function ProfileHeader({ userStats, userData, user }: ProfileHeaderProps) {
             gradient: "group-hover:via-blue-400",
             description: "Total code runs",
             metric: { label: "Last 24h", value: userStats?.last24Hours ?? 0, icon: Timer },
-        },
-        {
-            label: "Starred Snippets",
-            value: starredSnippets?.length ?? 0,
-            icon: Star,
-            color: "from-yellow-500 to-orange-500",
-            gradient: "group-hover:via-yellow-400",
-            description: "Saved for later",
-            metric: {
-                label: "Most starred",
-                value: userStats?.mostStarredLanguage ?? "N/A",
-                icon: Trophy,
-            },
         },
         {
             label: "Languages Used",
@@ -66,35 +50,42 @@ function ProfileHeader({ userStats, userData, user }: ProfileHeaderProps) {
                 icon: TrendingUp,
             },
         },
+        {
+            label: "Most Starred",
+            value: userStats?.mostStarredLanguage ?? "N/A",
+            icon: Star,
+            color: "from-yellow-500 to-orange-500",
+            gradient: "group-hover:via-yellow-400",
+            description: "Top language in stars",
+            metric: { label: "Favorite", value: userStats?.favoriteLanguage ?? "N/A", icon: Trophy },
+        },
     ];
 
     return (
-        <div
-            className="relative mb-8 bg-gradient-to-br from-[#12121a] to-[#1a1a2e] rounded-2xl p-8 border
-     border-gray-800/50 overflow-hidden"
-        >
+        <div className="relative mb-8 bg-gradient-to-br from-[#12121a] to-[#1a1a2e] rounded-2xl p-8 border border-gray-800/50 overflow-hidden">
             <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px]" />
             <div className="relative flex items-center gap-8">
                 <div className="relative group">
-                    <div
-                        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full 
-            blur-xl opacity-50 group-hover:opacity-75 transition-opacity"
-                    />
-                    <Image
-                        src={user.imageUrl}
-                        alt="Profile"
-                        width={40}
-                        height={40}
-                        className="w-24 h-24 rounded-full border-4 border-gray-800/50 relative z-10 group-hover:scale-105 transition-transform"
-                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+                    {user.image ? (
+                        <Image
+                            src={user.image}
+                            alt="Profile"
+                            width={96}
+                            height={96}
+                            className="w-24 h-24 rounded-full border-4 border-gray-800/50 relative z-10 group-hover:scale-105 transition-transform"
+                        />
+                    ) : (
+                        <div className="w-24 h-24 rounded-full border-4 border-gray-800/50 relative z-10 bg-blue-600 flex items-center justify-center text-3xl font-bold text-white">
+                            {user.name?.charAt(0).toUpperCase()}
+                        </div>
+                    )}
                 </div>
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-white">{userData.name}</h1>
-                    </div>
+                    <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
                     <p className="text-gray-400 flex items-center gap-2">
                         <UserIcon className="w-4 h-4" />
-                        {userData.email}
+                        {user.email}
                     </p>
                 </div>
             </div>
@@ -109,18 +100,15 @@ function ProfileHeader({ userStats, userData, user }: ProfileHeaderProps) {
                         className="group relative bg-gradient-to-br from-black/40 to-black/20 rounded-2xl overflow-hidden"
                     >
                         <div
-                            className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 
-              transition-all duration-500 ${stat.gradient}`}
+                            className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 transition-all duration-500 ${stat.gradient}`}
                         />
                         <div className="relative p-6">
                             <div className="flex items-start justify-between mb-4">
                                 <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-sm font-medium text-gray-400">
-                                            {stat.description}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-white tracking-tight">
+                                    <span className="text-sm font-medium text-gray-400">
+                                        {stat.description}
+                                    </span>
+                                    <h3 className="text-2xl font-bold text-white tracking-tight mt-1">
                                         {typeof stat.value === "number"
                                             ? stat.value.toLocaleString()
                                             : stat.value}

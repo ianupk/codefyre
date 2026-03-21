@@ -1,7 +1,7 @@
+"use client";
+
 import { useCodeEditorRestore } from "@/restore/useCodeEditorRestore";
-import { useMutation } from "convex/react";
 import { useState } from "react";
-import { api } from "../../../../convex/_generated/api";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -9,22 +9,30 @@ function ShareSnippetDialog({ onClose }: { onClose: () => void }) {
     const [title, setTitle] = useState("");
     const [isSharing, setIsSharing] = useState(false);
     const { language, getCode } = useCodeEditorRestore();
-    const createSnippet = useMutation(api.snippets.createSnippet);
 
     const handleShare = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setIsSharing(true);
 
         try {
             const code = getCode();
-            await createSnippet({ title, language, code });
+            const res = await fetch("/api/snippets", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, language, code }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error ?? "Failed to share snippet");
+            }
+
             onClose();
             setTitle("");
             toast.success("Snippet shared successfully");
         } catch (error) {
-            console.log("Error creating snippet:", error);
-            toast.error("Error creating snippet");
+            console.error("Error creating snippet:", error);
+            toast.error(error instanceof Error ? error.message : "Error creating snippet");
         } finally {
             setIsSharing(false);
         }
@@ -70,8 +78,7 @@ function ShareSnippetDialog({ onClose }: { onClose: () => void }) {
                         <button
                             type="submit"
                             disabled={isSharing}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-              disabled:opacity-50"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
                         >
                             {isSharing ? "Sharing..." : "Share"}
                         </button>

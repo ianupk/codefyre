@@ -1,10 +1,8 @@
 "use client";
-import { Snippet } from "@/types";
-import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useState } from "react";
 
+import { Snippet } from "@/types";
+import { useSession } from "@/lib/auth-client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Clock, Trash2, User } from "lucide-react";
@@ -13,17 +11,19 @@ import toast from "react-hot-toast";
 import StarButton from "@/components/StarButton";
 
 function SnippetCard({ snippet }: { snippet: Snippet }) {
-    const { user } = useUser();
-    const deleteSnippet = useMutation(api.snippets.deleteSnippet);
+    const { data: session } = useSession();
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
         setIsDeleting(true);
-
         try {
-            await deleteSnippet({ snippetId: snippet._id });
+            const res = await fetch(`/api/snippets/${snippet.id}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Failed to delete");
+            toast.success("Snippet deleted");
+            // Refresh the page to update the list
+            window.location.reload();
         } catch (error) {
-            console.log("Error deleting snippet:", error);
+            console.error("Error deleting snippet:", error);
             toast.error("Error deleting snippet");
         } finally {
             setIsDeleting(false);
@@ -31,32 +31,16 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
     };
 
     return (
-        <motion.div
-            layout
-            className="group relative"
-            whileHover={{ y: -2 }}
-            transition={{ duration: 0.2 }}
-        >
-            <Link href={`/snippets/${snippet._id}`} className="h-full block">
-                <div
-                    className="relative h-full bg-[#1e1e2e]/80 backdrop-blur-sm rounded-xl 
-          border border-[#313244]/50 hover:border-[#313244] 
-          transition-all duration-300 overflow-hidden"
-                >
+        <motion.div layout className="group relative" whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+            <Link href={`/snippets/${snippet.id}`} className="h-full block">
+                <div className="relative h-full bg-[#1e1e2e]/80 backdrop-blur-sm rounded-xl border border-[#313244]/50 hover:border-[#313244] transition-all duration-300 overflow-hidden">
                     <div className="p-6">
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <div className="relative">
-                                    <div
-                                        className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-20 
-                  group-hover:opacity-30 transition-all duration-500"
-                                        area-hidden="true"
-                                    />
-                                    <div
-                                        className="relative p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 group-hover:from-blue-500/20
-                   group-hover:to-purple-500/20 transition-all duration-500"
-                                    >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg blur opacity-20 group-hover:opacity-30 transition-all duration-500" />
+                                    <div className="relative p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 group-hover:from-blue-500/20 group-hover:to-purple-500/20 transition-all duration-500">
                                         <Image
                                             src={`/${snippet.language}.png`}
                                             alt={`${snippet.language} logo`}
@@ -72,36 +56,33 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
                                     </span>
                                     <div className="flex items-center gap-2 text-xs text-gray-500">
                                         <Clock className="size-3" />
-                                        {new Date(snippet._creationTime).toLocaleDateString()}
+                                        {new Date(snippet.createdAt).toLocaleDateString()}
                                     </div>
                                 </div>
                             </div>
+
                             <div
                                 className="absolute top-5 right-5 z-10 flex gap-4 items-center"
                                 onClick={(e) => e.preventDefault()}
                             >
-                                <StarButton snippetId={snippet._id} />
+                                <StarButton snippetId={snippet.id} />
 
-                                {user?.id === snippet.userId && (
-                                    <div className="z-10" onClick={(e) => e.preventDefault()}>
-                                        <button
-                                            onClick={handleDelete}
-                                            disabled={isDeleting}
-                                            className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200
-                                  ${
-                                      isDeleting
-                                          ? "bg-red-500/20 text-red-400 cursor-not-allowed"
-                                          : "bg-gray-500/10 text-gray-400 hover:bg-red-500/10 hover:text-red-400"
-                                  }
-                                `}
-                                        >
-                                            {isDeleting ? (
-                                                <div className="size-3.5 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                                            ) : (
-                                                <Trash2 className="size-3.5" />
-                                            )}
-                                        </button>
-                                    </div>
+                                {session?.user.id === snippet.userId && (
+                                    <button
+                                        onClick={handleDelete}
+                                        disabled={isDeleting}
+                                        className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${
+                                            isDeleting
+                                                ? "bg-red-500/20 text-red-400 cursor-not-allowed"
+                                                : "bg-gray-500/10 text-gray-400 hover:bg-red-500/10 hover:text-red-400"
+                                        }`}
+                                    >
+                                        {isDeleting ? (
+                                            <div className="size-3.5 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+                                        ) : (
+                                            <Trash2 className="size-3.5" />
+                                        )}
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -117,13 +98,10 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
                                         <div className="p-1 rounded-md bg-gray-800/50">
                                             <User className="size-3" />
                                         </div>
-                                        <span className="truncate max-w-[150px]">
-                                            {snippet.userName}
-                                        </span>
+                                        <span className="truncate max-w-[150px]">{snippet.userName}</span>
                                     </div>
                                 </div>
                             </div>
-
                             <div className="relative group/code">
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-purple-500/5 rounded-lg opacity-0 group-hover/code:opacity-100 transition-all" />
                                 <pre className="relative bg-black/30 rounded-lg p-4 overflow-hidden text-sm text-gray-300 font-mono line-clamp-3">
