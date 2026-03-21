@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  codeExecutions  CodeExecution[]
+  snippets        Snippet[]
+  snippetComments SnippetComment[]
+  stars           Star[]
+
+  @@map("users")
+}
+
+model CodeExecution {
+  id        String   @id @default(cuid())
+  userId    String
+  language  String
+  code      String
+  output    String?
+  error     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("code_executions")
+}
+
+model Snippet {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  language  String
+  code      String
+  userName  String
+  createdAt DateTime @default(now())
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments SnippetComment[]
+  stars    Star[]
+
+  @@map("snippets")
+}
+
+model SnippetComment {
+  id        String   @id @default(cuid())
+  snippetId String
+  userId    String
+  userName  String
+  content   String
+  createdAt DateTime @default(now())
+
+  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("snippet_comments")
+}
+
+model Star {
+  id        String   @id @default(cuid())
+  userId    String
+  snippetId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, snippetId])
+  @@map("stars")
+}

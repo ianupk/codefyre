@@ -5,39 +5,39 @@ import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 import Footer from "@/components/Footer";
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+    variable: "--font-geist-sans",
+    subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+    variable: "--font-geist-mono",
+    subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Codefyre",
-  description: "Build, Break, Repeat.",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-  },
+    title: "Codefyre",
+    description: "Build, Break, Repeat.",
+    icons: {
+        icon: "/favicon.ico",
+        shortcut: "/favicon.ico",
+    },
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 text-gray-100 flex flex-col`}
-        >
-          <ConvexClientProvider>{children}</ConvexClientProvider>
-          <Footer />
-        </body>
-      </html>
-    </ClerkProvider>
-  );
+    return (
+        <ClerkProvider>
+            <html lang="en">
+                <body
+                    className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 text-gray-100 flex flex-col`}
+                >
+                    <ConvexClientProvider>{children}</ConvexClientProvider>
+                    <Footer />
+                </body>
+            </html>
+        </ClerkProvider>
+    );
 }
