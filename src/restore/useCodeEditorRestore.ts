@@ -3,12 +3,11 @@ import { LANGUAGE_CONFIG } from "@/app/(root)/_constants";
 import { create } from "zustand";
 import type { editor as MonacoEditor } from "monaco-editor";
 
-const DEFAULT_LANGUAGE = "javascript";
-const DEFAULT_THEME = "vs-dark";
+const DEFAULT_LANGUAGE  = "javascript";
+const DEFAULT_THEME     = "vs-dark";
 const DEFAULT_FONT_SIZE = 16;
 
-const isValidLanguage = (lang: string): lang is keyof typeof LANGUAGE_CONFIG =>
-    lang in LANGUAGE_CONFIG;
+const isValidLanguage = (lang: string): lang is keyof typeof LANGUAGE_CONFIG => lang in LANGUAGE_CONFIG;
 
 const getInitialState = () => {
     if (typeof window === "undefined") {
@@ -24,21 +23,13 @@ const getInitialState = () => {
 };
 
 export const useCodeEditorRestore = create<
-    CodeEditorState & {
-        editor: MonacoEditor.IStandaloneCodeEditor | null;
-        setEditor: (editor: MonacoEditor.IStandaloneCodeEditor) => void;
-    }
+    CodeEditorState & { editor: MonacoEditor.IStandaloneCodeEditor | null; setEditor: (editor: MonacoEditor.IStandaloneCodeEditor) => void; }
 >((set, get) => {
     const initialState = getInitialState();
     return {
         ...initialState,
-        output: "",
-        isRunning: false,
-        error: null,
-        editor: null,
-        executionResult: null,
-        stdin: "",
-        executionTime: null,
+        output: "", isRunning: false, error: null, editor: null,
+        executionResult: null, stdin: "", executionTime: null,
 
         getCode: () => get().editor?.getValue() || "",
 
@@ -48,20 +39,12 @@ export const useCodeEditorRestore = create<
             set({ editor });
         },
 
-        setTheme: (theme: string) => {
-            localStorage.setItem("editor-theme", theme);
-            set({ theme });
-        },
-        setFontSize: (fontSize: number) => {
-            localStorage.setItem("editor-font-size", fontSize.toString());
-            set({ fontSize });
-        },
+        setTheme: (theme: string) => { localStorage.setItem("editor-theme", theme); set({ theme }); },
+        setFontSize: (fontSize: number) => { localStorage.setItem("editor-font-size", fontSize.toString()); set({ fontSize }); },
         setStdin: (stdin: string) => set({ stdin }),
 
         setLanguage: (language: string) => {
-            if (!isValidLanguage(language)) {
-                language = DEFAULT_LANGUAGE;
-            }
+            if (!isValidLanguage(language)) { language = DEFAULT_LANGUAGE; }
             const currentCode = get().editor?.getValue();
             if (currentCode) localStorage.setItem(`editor-code-${get().language}`, currentCode);
             localStorage.setItem("editor-language", language);
@@ -71,10 +54,7 @@ export const useCodeEditorRestore = create<
         runCode: async () => {
             const { language, getCode, stdin } = get();
             const code = getCode();
-            if (!code) {
-                set({ error: "Please enter some code" });
-                return;
-            }
+            if (!code) { set({ error: "Please enter some code" }); return; }
 
             set({ isRunning: true, error: null, output: "", executionTime: null });
 
@@ -90,48 +70,26 @@ export const useCodeEditorRestore = create<
 
                 if (!res.ok) {
                     const msg = data.error || `Execution failed (${res.status})`;
-                    set({
-                        error: msg,
-                        executionResult: { code, output: "", error: msg },
-                        executionTime: null,
-                    });
+                    set({ error: msg, executionResult: { code, output: "", error: msg }, executionTime: null });
                     return;
                 }
                 if (data.exception) {
-                    set({
-                        error: data.exception,
-                        executionResult: { code, output: "", error: data.exception },
-                        executionTime: data.executionTime ?? null,
-                    });
+                    set({ error: data.exception, executionResult: { code, output: "", error: data.exception }, executionTime: data.executionTime ?? null });
                     return;
                 }
                 if (data.stderr) {
-                    set({
-                        error: data.stderr,
-                        executionResult: { code, output: "", error: data.stderr },
-                        executionTime: data.executionTime ?? null,
-                    });
+                    set({ error: data.stderr, executionResult: { code, output: "", error: data.stderr }, executionTime: data.executionTime ?? null });
                     return;
                 }
 
                 const output = data.stdout || "";
                 set({
-                    output: output.trim(),
-                    error: null,
+                    output: output.trim(), error: null,
                     executionTime: data.executionTime ?? null,
-                    executionResult: {
-                        code,
-                        output: output.trim(),
-                        error: null,
-                        executionTime: data.executionTime ?? null,
-                    },
+                    executionResult: { code, output: output.trim(), error: null, executionTime: data.executionTime ?? null },
                 });
-            } catch (err) {
-                set({
-                    error: "Error running code",
-                    executionResult: { code, output: "", error: "Error running code" },
-                    executionTime: null,
-                });
+            } catch (_err) {
+                set({ error: "Error running code", executionResult: { code, output: "", error: "Error running code" }, executionTime: null });
             } finally {
                 set({ isRunning: false });
             }
