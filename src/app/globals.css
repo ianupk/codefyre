@@ -82,15 +82,8 @@ body {
     background: rgba(255, 255, 255, 0.18);
 }
 
-.monaco-editor .margin {
-    background: var(--editor-bg) !important;
-}
-.monaco-editor {
-    background: var(--editor-bg) !important;
-}
-.monaco-editor .monaco-editor-background {
-    background: var(--editor-bg) !important;
-}
+
+
 
 /* Give floating pill nav space */
 html,

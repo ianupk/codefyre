@@ -15,9 +15,15 @@ const getInitialState = () => {
     }
     const storedLanguage = localStorage.getItem("editor-language") || DEFAULT_LANGUAGE;
     const language = isValidLanguage(storedLanguage) ? storedLanguage : DEFAULT_LANGUAGE;
+    // Migrate old "vs-light" → "vs" (correct Monaco built-in ID)
+    let theme = localStorage.getItem("editor-theme") || DEFAULT_THEME;
+    if (theme === "vs-light") {
+        theme = "vs";
+        localStorage.setItem("editor-theme", theme);
+    }
     return {
         language,
-        theme: localStorage.getItem("editor-theme") || DEFAULT_THEME,
+        theme,
         fontSize: parseInt(localStorage.getItem("editor-font-size") || `${DEFAULT_FONT_SIZE}`),
     };
 };
