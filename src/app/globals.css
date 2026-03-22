@@ -1,108 +1,177 @@
 @import "tailwindcss";
 
 :root {
-  --bg-base:        #111113;
-  --bg-surface:     #18181b;
-  --bg-elevated:    #1f1f23;
-  --bg-overlay:     #27272b;
-  --bg-input:       #232327;
+    --bg-base: #111113;
+    --bg-surface: #18181b;
+    --bg-elevated: #1f1f23;
+    --bg-overlay: #27272b;
+    --bg-input: #232327;
 
-  --border-subtle:  rgba(255,255,255,0.05);
-  --border-default: rgba(255,255,255,0.09);
-  --border-strong:  rgba(255,255,255,0.16);
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border-default: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
 
-  --text-primary:   #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted:     #52525b;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #52525b;
 
-  /* Pink accent — #F9629F */
-  --accent:         #F9629F;
-  --accent-dim:     rgba(249,98,159,0.12);
-  --accent-border:  rgba(249,98,159,0.30);
-  --accent-hover:   #e54f8c;
+    /* Pink accent — #F9629F */
+    --accent: #f9629f;
+    --accent-dim: rgba(249, 98, 159, 0.12);
+    --accent-border: rgba(249, 98, 159, 0.3);
+    --accent-hover: #e54f8c;
 
-  /* Status */
-  --green:          #22c55e;
-  --green-dim:      rgba(34,197,94,0.10);
-  --red:            #ef4444;
-  --red-dim:        rgba(239,68,68,0.10);
-  --blue:           #60a5fa;
-  --yellow:         #f59e0b;
+    /* Status */
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.1);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.1);
+    --blue: #60a5fa;
+    --yellow: #f59e0b;
 
-  /* Editor */
-  --editor-bg:      #0e0e10;
-  --panel-bg:       #111113;
-  --topbar-bg:      #111113;
+    /* Editor */
+    --editor-bg: #0e0e10;
+    --panel-bg: #111113;
+    --topbar-bg: #111113;
 
-  /* Radius — slightly rounded, not sharp */
-  --r-sm:  4px;
-  --r:     8px;
-  --r-lg:  12px;
-  --r-xl:  16px;
+    /* Radius — slightly rounded, not sharp */
+    --r-sm: 4px;
+    --r: 8px;
+    --r-lg: 12px;
+    --r-xl: 16px;
 
-  /* Glass */
-  --glass: rgba(255,255,255,0.03);
-  --glass-border: rgba(255,255,255,0.07);
+    /* Glass */
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.07);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { color-scheme: dark; height: 100%; }
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+html {
+    color-scheme: dark;
+    height: 100%;
+}
 
 body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  height: 100%;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    height: 100%;
 }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
 
-.monaco-editor .margin { background: var(--editor-bg) !important; }
-.monaco-editor { background: var(--editor-bg) !important; }
-.monaco-editor .monaco-editor-background { background: var(--editor-bg) !important; }
+.monaco-editor .margin {
+    background: var(--editor-bg) !important;
+}
+.monaco-editor {
+    background: var(--editor-bg) !important;
+}
+.monaco-editor .monaco-editor-background {
+    background: var(--editor-bg) !important;
+}
 
 /* Give floating pill nav space */
-html, body { scroll-padding-top: 72px; }
+html,
+body {
+    scroll-padding-top: 72px;
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
-@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
 
 /* ── Global responsive utilities ────────────────────────────────────────── */
 
 /* Hide on mobile */
 @media (max-width: 640px) {
-  .hide-mobile { display: none !important; }
+    .hide-mobile {
+        display: none !important;
+    }
 }
 
 /* Dashboard responsive */
 @media (max-width: 860px) {
-  .dash-stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+    .dash-stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
 }
 @media (max-width: 500px) {
-  .dash-stats-grid { grid-template-columns: 1fr !important; }
+    .dash-stats-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 /* Snippets grid */
 @media (max-width: 640px) {
-  .snippets-grid { grid-template-columns: 1fr !important; }
+    .snippets-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 
 /* NavigationHeader pill — shrink on mobile */
 @media (max-width: 480px) {
-  .nav-pill-label { display: none !important; }
+    .nav-pill-label {
+        display: none !important;
+    }
 }
 
 /* Stack snippet detail header on mobile */
 @media (max-width: 600px) {
-  .snippet-header-inner { flex-direction: column !important; align-items: flex-start !important; }
+    .snippet-header-inner {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
 }
 
 /* Auth page responsive handled inline via CSS class */
