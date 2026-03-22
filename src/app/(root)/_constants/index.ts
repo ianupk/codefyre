@@ -7,7 +7,7 @@ type LanguageConfig = Record<
         id: string;
         label: string;
         logoPath: string;
-        ocLanguage: string; // OneCompiler language ID
+        ocLanguage: string;
         monacoLanguage: string;
         defaultCode: string;
     }
@@ -20,17 +20,7 @@ export const LANGUAGE_CONFIG: LanguageConfig = {
         logoPath: "/javascript.png",
         ocLanguage: "javascript",
         monacoLanguage: "javascript",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// JavaScript playground for learning and testing algorithms.
-
-function fibonacci(n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
-for (let i = 0; i < 10; i++) {
-  console.log(\`fib(\${i}) = \${fibonacci(i)}\`);
-}`,
+        defaultCode: `console.log("Hello, World!");`,
     },
 
     typescript: {
@@ -39,17 +29,7 @@ for (let i = 0; i < 10; i++) {
         logoPath: "/typescript.png",
         ocLanguage: "typescript",
         monacoLanguage: "typescript",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// TypeScript playground for structured, typed logic.
-
-function fibonacci(n: number): number {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
-for (let i = 0; i < 10; i++) {
-  console.log(\`fib(\${i}) = \${fibonacci(i)}\`);
-}`,
+        defaultCode: `console.log("Hello, World!");`,
     },
 
     python: {
@@ -58,16 +38,7 @@ for (let i = 0; i < 10; i++) {
         logoPath: "/python.png",
         ocLanguage: "python",
         monacoLanguage: "python",
-        defaultCode: `# 🔥 Welcome to Codefyre!
-# Python playground to build logic and learn algorithms.
-
-def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n - 1) + fibonacci(n - 2)
-
-for i in range(10):
-    print(f"fib({i}) = {fibonacci(i)}")`,
+        defaultCode: `print("Hello, World!")`,
     },
 
     java: {
@@ -76,20 +47,10 @@ for i in range(10):
         logoPath: "/java.png",
         ocLanguage: "java",
         monacoLanguage: "java",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// Java playground for OOP and algorithmic mastery.
-
-public class Main {
-  static int fibonacci(int n) {
-    if (n <= 1) return n;
-    return fibonacci(n - 1) + fibonacci(n - 2);
-  }
-
-  public static void main(String[] args) {
-    for (int i = 0; i < 10; i++) {
-      System.out.println("fib(" + i + ") = " + fibonacci(i));
+        defaultCode: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
     }
-  }
 }`,
     },
 
@@ -99,24 +60,12 @@ public class Main {
         logoPath: "/go.png",
         ocLanguage: "go",
         monacoLanguage: "go",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// Go playground for building fast and concurrent programs.
-
-package main
+        defaultCode: `package main
 
 import "fmt"
 
-func fibonacci(n int) int {
-  if n <= 1 {
-    return n
-  }
-  return fibonacci(n-1) + fibonacci(n-2)
-}
-
 func main() {
-  for i := 0; i < 10; i++ {
-    fmt.Printf("fib(%d) = %d\\n", i, fibonacci(i))
-  }
+    fmt.Println("Hello, World!")
 }`,
     },
 
@@ -126,21 +75,8 @@ func main() {
         logoPath: "/rust.png",
         ocLanguage: "rust",
         monacoLanguage: "rust",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// Rust playground — memory-safe and powerful.
-
-fn fibonacci(n: u32) -> u32 {
-  if n <= 1 {
-    n
-  } else {
-    fibonacci(n - 1) + fibonacci(n - 2)
-  }
-}
-
-fn main() {
-  for i in 0..10 {
-    println!("fib({}) = {}", i, fibonacci(i));
-  }
+        defaultCode: `fn main() {
+    println!("Hello, World!");
 }`,
     },
 
@@ -150,22 +86,12 @@ fn main() {
         logoPath: "/cpp.png",
         ocLanguage: "cpp",
         monacoLanguage: "cpp",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// C++ playground for mastering performance and logic.
-
-#include <iostream>
+        defaultCode: `#include <iostream>
 using namespace std;
 
-int fibonacci(int n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
 int main() {
-  for (int i = 0; i < 10; ++i) {
-    cout << "fib(" << i << ") = " << fibonacci(i) << endl;
-  }
-  return 0;
+    cout << "Hello, World!" << endl;
+    return 0;
 }`,
     },
 
@@ -175,22 +101,12 @@ int main() {
         logoPath: "/csharp.png",
         ocLanguage: "csharp",
         monacoLanguage: "csharp",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// C# playground to explore logic with clarity.
-
-using System;
+        defaultCode: `using System;
 
 class Program {
-  static int Fibonacci(int n) {
-    if (n <= 1) return n;
-    return Fibonacci(n - 1) + Fibonacci(n - 2);
-  }
-
-  static void Main() {
-    for (int i = 0; i < 10; i++) {
-      Console.WriteLine($"fib({i}) = {Fibonacci(i)}");
+    static void Main() {
+        Console.WriteLine("Hello, World!");
     }
-  }
 }`,
     },
 
@@ -200,17 +116,7 @@ class Program {
         logoPath: "/ruby.png",
         ocLanguage: "ruby",
         monacoLanguage: "ruby",
-        defaultCode: `# 🔥 Welcome to Codefyre!
-# Ruby playground — elegant and expressive coding.
-
-def fibonacci(n)
-  return n if n <= 1
-  fibonacci(n - 1) + fibonacci(n - 2)
-end
-
-(0...10).each do |i|
-  puts "fib(\#{i}) = \#{fibonacci(i)}"
-end`,
+        defaultCode: `puts "Hello, World!"`,
     },
 
     swift: {
@@ -219,17 +125,7 @@ end`,
         logoPath: "/swift.png",
         ocLanguage: "swift",
         monacoLanguage: "swift",
-        defaultCode: `// 🔥 Welcome to Codefyre!
-// Swift playground for modern and safe programming.
-
-func fibonacci(_ n: Int) -> Int {
-  if n <= 1 { return n }
-  return fibonacci(n - 1) + fibonacci(n - 2)
-}
-
-for i in 0..<10 {
-  print("fib(\\(i)) = \\(fibonacci(i))\\n")
-}`,
+        defaultCode: `print("Hello, World!")`,
     },
 };
 
@@ -316,11 +212,10 @@ export const THEME_DEFINITONS = {
     },
 };
 
-// Helper function to define themes in Monaco
 export const defineMonacoThemes = (monaco: Monaco) => {
     Object.entries(THEME_DEFINITONS).forEach(([themeName, themeData]) => {
         monaco.editor.defineTheme(themeName, {
-            base: themeData.base as "vs" | "vs-dark" | "hc-black", // Type assertion added here
+            base: themeData.base as "vs" | "vs-dark" | "hc-black",
             inherit: themeData.inherit,
             rules: themeData.rules.map((rule) => ({
                 ...rule,
