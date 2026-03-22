@@ -9,7 +9,6 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@clerk/nextjs": "^6.21.0",
         "@monaco-editor/react": "^4.7.0",
         "@neondatabase/serverless": "^1.0.2",
         "@prisma/adapter-neon": "^7.5.0",
@@ -18,7 +17,7 @@
         "convex": "^1.24.8",
         "framer-motion": "^12.16.0",
         "lucide-react": "^0.513.0",
-        "next": "^16.2.1",
+        "next": "^15.3.2",
         "prisma": "^7.5.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
