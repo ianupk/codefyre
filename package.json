@@ -2,6 +2,9 @@
     "name": "codefyre",
     "version": "0.1.0",
     "private": true,
+    "engines": {
+        "node": ">=20"
+    },
     "scripts": {
         "dev": "next dev",
         "build": "prisma generate && next build",
@@ -14,7 +17,6 @@
         "@prisma/adapter-neon": "^7.5.0",
         "@prisma/client": "^7.5.0",
         "better-auth": "^1.5.5",
-        "convex": "^1.24.8",
         "framer-motion": "^12.16.0",
         "lucide-react": "^0.513.0",
         "next": "^15.3.6",
@@ -23,7 +25,6 @@
         "react-dom": "^19.2.3",
         "react-hot-toast": "^2.5.2",
         "react-syntax-highlighter": "^15.6.1",
-        "svix": "^1.67.0",
         "zustand": "^5.0.5"
     },
     "devDependencies": {

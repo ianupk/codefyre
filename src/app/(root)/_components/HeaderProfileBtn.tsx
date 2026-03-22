@@ -53,7 +53,7 @@ export default function HeaderProfileBtn() {
     if (!session) {
         return (
             <Link
-                href="/sign-in"
+                href="/"
                 style={{
                     display: "flex",
                     alignItems: "center",

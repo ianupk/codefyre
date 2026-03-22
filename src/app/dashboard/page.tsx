@@ -83,7 +83,7 @@ export default function DashboardPage() {
     }, []);
 
     useEffect(() => {
-        if (!session && !isPending) { router.push("/sign-in"); return; }
+        if (!session && !isPending) { router.push("/"); return; }
         if (session) loadAll();
     }, [session, isPending, router, loadAll]);
 

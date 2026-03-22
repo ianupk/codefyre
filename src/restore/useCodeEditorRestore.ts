@@ -42,17 +42,19 @@ export const useCodeEditorRestore = create<
         getCode: () => get().editor?.getValue() || "",
 
         setEditor: (editor: MonacoEditor.IStandaloneCodeEditor) => {
-            const savedCode = localStorage.getItem(`editor-code-${get().language}`);
-            if (savedCode) editor.setValue(savedCode);
+            if (typeof window !== "undefined") {
+                const savedCode = localStorage.getItem(`editor-code-${get().language}`);
+                if (savedCode) editor.setValue(savedCode);
+            }
             set({ editor });
         },
 
         setTheme: (theme: string) => {
-            localStorage.setItem("editor-theme", theme);
+            if (typeof window !== "undefined") localStorage.setItem("editor-theme", theme);
             set({ theme });
         },
         setFontSize: (fontSize: number) => {
-            localStorage.setItem("editor-font-size", fontSize.toString());
+            if (typeof window !== "undefined") localStorage.setItem("editor-font-size", fontSize.toString());
             set({ fontSize });
         },
         setStdin: (stdin: string) => set({ stdin }),
@@ -61,9 +63,11 @@ export const useCodeEditorRestore = create<
             if (!isValidLanguage(language)) {
                 language = DEFAULT_LANGUAGE;
             }
-            const currentCode = get().editor?.getValue();
-            if (currentCode) localStorage.setItem(`editor-code-${get().language}`, currentCode);
-            localStorage.setItem("editor-language", language);
+            if (typeof window !== "undefined") {
+                const currentCode = get().editor?.getValue();
+                if (currentCode) localStorage.setItem(`editor-code-${get().language}`, currentCode);
+                localStorage.setItem("editor-language", language);
+            }
             set({ language, output: "", error: null, executionTime: null });
         },
 

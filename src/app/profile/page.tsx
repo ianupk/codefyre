@@ -82,7 +82,7 @@ function ProfilePage() {
 
     useEffect(() => {
         if (!session && !isPending) {
-            router.push("/sign-in");
+            router.push("/");
             return;
         }
         if (session) {
