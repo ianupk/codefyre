@@ -64,7 +64,20 @@ export default function NavigationHeader() {
     ];
 
     return (
-        <header style={{ position: "sticky", top: 0, zIndex: 50, padding: "10px 20px" }}>
+        <header style={{ position: "sticky", top: 0, zIndex: 50, padding: "10px 20px", pointerEvents: "none" }}>
+            {/* Fade mask — covers the gap above + below the pill so content fades out */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: -20,
+                    background:
+                        "linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base) 55%, transparent 100%)",
+                    pointerEvents: "none",
+                }}
+            />
             <div
                 style={{
                     /* match the 1100px content width used by dashboard/snippets */
@@ -83,6 +96,8 @@ export default function NavigationHeader() {
                     alignItems: "center",
                     padding: "0 8px 0 16px",
                     gap: 4,
+                    position: "relative",
+                    pointerEvents: "auto",
                 }}
             >
                 {/* Logo */}

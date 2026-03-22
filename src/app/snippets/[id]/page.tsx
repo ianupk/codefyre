@@ -381,12 +381,16 @@ export default function SnippetDetailPage() {
                             minimap: { enabled: false },
                             fontSize: 14,
                             readOnly: true,
+                            domReadOnly: true,
                             automaticLayout: true,
                             scrollBeyondLastLine: false,
                             padding: { top: 14, bottom: 14 },
                             fontFamily: '"JetBrains Mono","Fira Code",monospace',
                             fontLigatures: true,
-                            scrollbar: { verticalScrollbarSize: 5 },
+                            scrollbar: {
+                                verticalScrollbarSize: 5,
+                                handleMouseWheel: false,
+                            },
                             lineDecorationsWidth: 4,
                         }}
                     />
