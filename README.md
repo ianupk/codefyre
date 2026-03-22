@@ -1,105 +1,145 @@
-<h1 align="center" style="font-size:3.5rem;">
-  <b>CodeFyre</b>
-</h1>
+# Codefyre — Browser-Based Code Editor & Snippet Sharing Platform
 
-<p align="center" style="font-size:1.2rem;">
-  <b>The Modern Online Code Editor & Code Sharing Platform</b>
-</p>
+A browser-based code editor. Write, execute, and share code in 10 programming languages — instantly, with no setup required.
 
-<p align="center">
-  <a href="https://github.com/anupkumar43/codefyre">
-    <img src="https://img.shields.io/github/stars/anupkumar43/codefyre?style=social" alt="GitHub stars" />
-  </a>
-  <a href="https://codefyre.vercel.app/">
-    <img src="https://img.shields.io/badge/Live%20Demo-CodeFyre-blueviolet?logo=vercel" alt="Live Demo" />
-  </a>
-</p>
+**Live Demo:** [codefyre.vercel.app](https://codefyre.vercel.app)
 
 ---
 
-## ✨ Overview
+## Features
 
-**CodeFyre** is a sleek and modern **online code editor** built for developers who value speed, flexibility, and collaboration.  
-Write, run, and share code effortlessly — all within your browser.  
-Whether you’re prototyping algorithms, testing snippets, or showcasing your work, CodeFyre makes it seamless and beautiful.
-
----
-
-## ⚡ Features
-
-- 🚀 **Multi-Language Execution** – Write & run code in **10+ popular languages**.  
-- 🎨 **Customizable Editor** – Choose from **5 VS Code-style themes**, adjust font size, and tailor your workspace.  
-- ✅ **Smart Output Feedback** – Intuitive and clear success/error messages.  
-- 🌐 **Community Sharing** – Share snippets publicly and explore others’ work.  
-- 🔍 **Advanced Search & Filtering** – Find and organize code quickly.  
-- 👤 **Personal Profiles** – Keep track of your favorites and history.  
-- 💸 **Flexible Pricing** – Free and Pro plans for all kinds of developers.  
-- 🔗 **Webhook Integration** – Connect CodeFyre with your own tools & services.
+- **10 Languages** — JavaScript, TypeScript, Python, Java, Go, Rust, C++, C#, Ruby, Swift
+- **Monaco Editor** — VS Code-grade editor with JetBrains Mono font, syntax highlighting, and 5 themes
+- **Instant Execution** — Code runs via the OneCompiler API in milliseconds
+- **stdin Support** — Pass input to your programs for interactive testing
+- **Share Snippets** — Publish code to the community, star favourites, and leave comments
+- **Dashboard** — Track your execution history, language usage stats, and starred snippets
+- **Authentication** — Email/password auth via Better Auth
+- **Responsive** — Works on desktop and mobile
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-| Layer | Technologies |
-| :---- | :------------ |
-| **Frontend** | Next.js 15, React, TypeScript, Tailwind CSS, Monaco Editor |
-| **Backend** | Convex |
-| **Authentication** | Clerk |
-| **Deployment** | Vercel |
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 + inline styles |
+| Editor | Monaco Editor (`@monaco-editor/react`) |
+| Auth | Better Auth |
+| Database | Neon (Postgres) via Prisma 7 |
+| Code Execution | OneCompiler API |
+| State | Zustand |
+| Animations | Framer Motion |
+| Deployment | Vercel |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### 1️⃣ Clone the repository
+### Prerequisites
+
+- Node.js 18+
+- A [Neon](https://neon.tech) Postgres database
+- A [OneCompiler API key](https://onecompiler.com/api-console)
+
+### Installation
+
 ```bash
-git clone https://github.com/anupkumar43/codefyre.git
+git clone https://github.com/ianupk/codefyre.git
 cd codefyre
-```
-
-### 2️⃣ Install dependencies
-```bash
 npm install
 ```
 
-### 3️⃣ Set up environment variables  
-Create a `.env.local` file in the root directory and configure your credentials for:
+### Environment Variables
 
+Create a `.env.local` file in the root:
+
+```env
+# Database
+DATABASE_URL=postgresql://...
+
+# Better Auth
+BETTER_AUTH_SECRET=your-32-character-secret-here
+BETTER_AUTH_URL=http://localhost:3000
+
+# OneCompiler
+ONECOMPILER_API_KEY=your-api-key-here
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-CONVEX_DEPLOYMENT=
+
+Also create a `.env` file (required by Prisma):
+
+```env
+DATABASE_URL=postgresql://...
 ```
 
-> Make sure to fill in your actual keys from Clerk and Convex.
+### Database Setup
 
-### 4️⃣ Run the development server
+```bash
+npx prisma db push
+npx prisma generate
+```
+
+### Run Development Server
+
 ```bash
 npm run dev
 ```
 
-Now visit 👉 [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🌍 Live Demo
+## Project Structure
 
-🚀 **Experience it live:**  
-👉 [**CodeFyre on Vercel**](https://codefyre.vercel.app/)
+```
+src/
+├── app/
+│   ├── (root)/
+│   │   └── _components/     # Editor, OutputPanel, TopBar, etc.
+│   ├── api/                 # API routes (execute, snippets, auth, etc.)
+│   ├── dashboard/           # Dashboard page
+│   ├── snippets/            # Snippets listing and detail pages
+│   └── editor/              # Editor page
+├── components/              # Shared components (NavigationHeader, StarButton, etc.)
+├── lib/                     # Auth config (Better Auth)
+├── restore/                 # Zustand store (useCodeEditorRestore)
+├── types/                   # TypeScript types
+└── generated/               # Prisma generated client (auto-generated, gitignored)
+```
 
 ---
 
-## 💬 Connect with Me
+## Scripts
 
-<p align="center">
-  &nbsp;
-  <a href="https://www.linkedin.com/in/anupkumar43/">
-    <img src="https://img.shields.io/badge/LinkedIn-Anup%20Kumar-blue?logo=linkedin" alt="LinkedIn" />
-  </a>
-</p>
+```bash
+npm run dev       # Start development server
+npm run build     # Generate Prisma client + build for production
+npm run start     # Start production server
+npm run lint      # Run ESLint
+```
 
 ---
 
-<p align="center">
-  <i>🔥 CodeFyre — Write. Run. Share. Ignite your code.</i>
-</p>
+## Database Schema
+
+| Table | Description |
+|---|---|
+| `user` | User accounts (Better Auth) |
+| `session` | Active sessions (Better Auth) |
+| `account` | OAuth accounts (Better Auth) |
+| `verification` | Email verification tokens (Better Auth) |
+| `code_executions` | Execution history per user |
+| `snippets` | Shared code snippets |
+| `snippet_comments` | Comments on snippets |
+| `stars` | Starred snippets |
+
+---
+
+## License
+
+MIT
